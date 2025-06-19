@@ -1,0 +1,954 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'dart:ui';
+import 'package:supervisor_wo/core/blocs/auth/auth_event.dart';
+import 'package:supervisor_wo/core/blocs/supervisor/supervisor_bloc.dart';
+import 'package:supervisor_wo/core/blocs/supervisor/supervisor_event.dart';
+import 'package:supervisor_wo/core/blocs/supervisor/supervisor_state.dart';
+import 'package:supervisor_wo/core/utils/app_sizes.dart';
+import 'package:supervisor_wo/core/services/theme.dart';
+import 'package:supervisor_wo/models/user_profile.dart';
+import 'package:supervisor_wo/presentation/widgets/saudi_plate.dart';
+import 'package:supervisor_wo/presentation/widgets/gradient_app_bar.dart';
+
+import '../../core/blocs/auth/auth_bloc.dart';
+import '../../core/blocs/auth/auth_state.dart';
+
+/// A modern profile screen that displays user data with web dashboard design
+class ModernProfileScreen extends StatelessWidget {
+  const ModernProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) {
+        if (state.status == AuthStatus.unauthenticated) {
+          context.go('/login');
+        }
+      },
+      child: const _ModernProfileScreenBody(),
+    );
+  }
+}
+
+class _ModernProfileScreenBody extends StatelessWidget {
+  const _ModernProfileScreenBody();
+
+  @override
+  Widget build(BuildContext context) {
+    AppSizes.init(context);
+
+    return BlocListener<SupervisorBloc, SupervisorState>(
+      listener: (context, state) {
+        if (state.status == SupervisorStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage ?? 'Failed to load profile'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              action: SnackBarAction(
+                label: 'إعادة المحاولة',
+                textColor: Colors.white,
+                onPressed: () {
+                  context.read<SupervisorBloc>().add(const SupervisorRefreshed());
+                },
+              ),
+            ),
+          );
+        }
+      },
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+      child: Scaffold(
+          backgroundColor: AppColors.surfaceLight,
+          appBar: GradientAppBar(
+            
+            title: 'الملف الشخصي',
+            subtitle: 'معلوماتك الشخصية',
+            automaticallyImplyLeading: false,
+            showRefreshButton: false,
+            onRefresh: () => context.read<SupervisorBloc>().add(const SupervisorRefreshed()),
+            isLoading: context.select<SupervisorBloc, bool>(
+              (bloc) => bloc.state.status == SupervisorStatus.loading,
+            ),
+          ),
+        body: BlocBuilder<SupervisorBloc, SupervisorState>(
+          builder: (context, state) {
+            final isLoading = state.status == SupervisorStatus.initial ||
+                  (state.status == SupervisorStatus.loading && state.profile == null);
+
+              if (state.status == SupervisorStatus.failure && state.profile == null) {
+                return _buildErrorState(context, state.errorMessage ?? 'Failed to load profile');
+            }
+
+            final profile = isLoading
+                ? UserProfile(
+                    id: 'fake_id',
+                    username: 'اسم المستخدم',
+                    email: 'email@email.com',
+                    phone: '+966500000000',
+                    plateNumbers: '1234',
+                    plateEnglishLetters: 'ABC',
+                    plateArabicLetters: 'أ ب ج',
+                    iqamaId: '1234567890',
+                    workId: '987654321',
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                  )
+                : state.profile;
+
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<SupervisorBloc>().add(const SupervisorRefreshed());
+                },
+                child: Skeletonizer(
+              enabled: isLoading,
+              child: _buildProfileContent(context, profile!, isLoading),
+                ),
+            );
+          },
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the error state UI
+  Widget _buildErrorState(BuildContext context, String message) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Container(
+        margin: EdgeInsets.all(AppPadding.large),
+        padding: EdgeInsets.all(AppPadding.extraLarge),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.error.withOpacity(0.1),
+              blurRadius: 30,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+      child: Column(
+          mainAxisSize: MainAxisSize.min,
+        children: [
+            Container(
+              padding: EdgeInsets.all(AppPadding.large),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: AppColors.error,
+              ),
+            ),
+            SizedBox(height: AppPadding.large),
+            Text(
+              'خطأ في تحميل البيانات',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.error,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: AppPadding.small),
+          Text(
+            message,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+              ),
+            textAlign: TextAlign.center,
+          ),
+            SizedBox(height: AppPadding.large),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<SupervisorBloc>().add(const SupervisorRefreshed());
+              },
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('إعادة المحاولة'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppPadding.large,
+                  vertical: AppPadding.medium,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+            ),
+          ),
+        ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the main profile content
+  Widget _buildProfileContent(BuildContext context, UserProfile profile, bool isLoading) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.all(AppPadding.small),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          
+          // Personal Information
+          _buildModernInfoCard(
+            context: context,
+            title: 'المعلومات الشخصية',
+            icon: Icons.person_rounded,
+            iconColor: AppColors.primary,
+            children: [
+              _buildModernInfoItem(
+                context: context,
+                icon: Icons.account_circle_rounded,
+                title: 'اسم المستخدم',
+                value: profile.username,
+                iconColor: AppColors.primary,
+              ),
+              _buildModernInfoItem(
+                context: context,
+                icon: Icons.email_rounded,
+                title: 'البريد الإلكتروني',
+                value: profile.email,
+                iconColor: AppColors.primary,
+              ),
+              Directionality(
+                textDirection: TextDirection.rtl,
+                child: _buildModernInfoItem(
+                  context: context,
+                  icon: Icons.phone_rounded,
+                  title: 'رقم الهاتف',
+                  value: _formatPhoneNumber(profile.phone),
+                  iconColor: AppColors.success,
+                ),
+              ),
+              if (profile.iqamaId != null && profile.iqamaId!.isNotEmpty)
+                _buildModernInfoItem(
+                  context: context,
+                  icon: Icons.badge_rounded,
+                  title: 'رقم الإقامة',
+                  value: profile.iqamaId!,
+                  iconColor: AppColors.warning,
+                ),
+            ],
+          ),
+
+          SizedBox(height: AppPadding.medium),
+
+          // Vehicle Information
+          if (_hasVehicleInfo(profile))
+            _buildVehicleCard(context, profile),
+
+          if (_hasVehicleInfo(profile)) SizedBox(height: AppPadding.medium),
+
+          // Work Information
+          if (profile.workId != null && profile.workId!.isNotEmpty)
+            _buildModernInfoCard(
+              context: context,
+              title: 'معلومات العمل',
+              icon: Icons.work_rounded,
+              iconColor: AppColors.secondary,
+              children: [
+                _buildModernInfoItem(
+                  context: context,
+                  icon: Icons.badge_rounded,
+                  title: 'الرقم الوظيفي',
+                  value: profile.workId!,
+                  iconColor: AppColors.secondary,
+                ),
+              ],
+            ),
+
+          if (profile.workId != null && profile.workId!.isNotEmpty)
+            SizedBox(height: AppPadding.medium),
+
+          // Settings and Actions
+          _buildModernSettingsCard(context, profile),
+
+          SizedBox(height: AppPadding.large),
+        ],
+      ),
+    );
+  }
+
+
+
+  /// Builds modern information card
+  Widget _buildModernInfoCard({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required Color iconColor,
+    required List<Widget> children,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.08),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: EdgeInsets.all(AppPadding.medium),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  iconColor.withOpacity(0.04),
+                  iconColor.withOpacity(0.02),
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(AppPadding.small),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [iconColor, iconColor.withOpacity(0.8)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: iconColor.withOpacity(0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+                SizedBox(width: AppPadding.small),
+                Text(
+                  title,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: iconColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Content
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  /// Builds modern information item
+  Widget _buildModernInfoItem({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color iconColor,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: EdgeInsets.all(AppPadding.medium),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: AppColors.primary.withOpacity(0.08),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(AppPadding.small),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              size: 16,
+              color: iconColor,
+            ),
+          ),
+          SizedBox(width: AppPadding.small),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: AppPadding.small * 0.5),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds vehicle information card
+  Widget _buildVehicleCard(BuildContext context, UserProfile profile) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.secondary.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(
+          color: AppColors.secondary.withOpacity(0.12),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: EdgeInsets.all(AppPadding.medium),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.secondary.withOpacity(0.04),
+                  AppColors.secondary.withOpacity(0.02),
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(AppPadding.small),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.secondary, AppColors.secondary.withOpacity(0.8)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.secondary.withOpacity(0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.directions_car_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+                SizedBox(width: AppPadding.small),
+                Text(
+                  'معلومات المركبة',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.secondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Plate section
+          Container(
+            padding: EdgeInsets.all(AppPadding.medium),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: AppColors.secondary.withOpacity(0.08),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'لوحة المركبة',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: AppPadding.small),
+                Center(
+                  child: Transform.scale(
+                    scale: 0.9,
+                    child: SaudiLicensePlate(
+                      englishNumbers: profile.plateNumbers ?? '',
+                      englishLetters: profile.plateEnglishLetters ?? '',
+                      arabicLetters: profile.plateArabicLetters ??
+                          _convertToArabicLetters(profile.plateEnglishLetters ?? ''),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds modern settings card
+  Widget _buildModernSettingsCard(BuildContext context, [UserProfile? profile]) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.08),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: EdgeInsets.all(AppPadding.medium),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withOpacity(0.04),
+                  AppColors.primary.withOpacity(0.02),
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(AppPadding.small),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, AppColors.primaryLight],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.settings_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+                SizedBox(width: AppPadding.small),
+                Text(
+                  'الإعدادات والخيارات',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Settings items
+          _buildModernSettingItem(
+            context: context,
+            icon: Icons.edit_rounded,
+            title: 'تعديل الملف الشخصي',
+            subtitle: 'قم بتحديث معلوماتك الشخصية',
+            iconColor: AppColors.primary,
+            onTap: () {
+              context.push('/edit-profile', extra: profile);
+            },
+          ),
+
+          
+
+          
+
+          _buildModernSettingItem(
+            context: context,
+            icon: Icons.help_rounded,
+            title: 'المساعدة والدعم',
+            subtitle: 'احصل على المساعدة والدعم الفني',
+            iconColor: AppColors.success,
+            onTap: () {
+              _showComingSoonDialog(context, 'المساعدة والدعم');
+            },
+          ),
+
+          _buildModernSettingItem(
+            context: context,
+            icon: Icons.logout_rounded,
+            title: 'تسجيل الخروج',
+            subtitle: 'الخروج من حسابك الحالي',
+            iconColor: AppColors.error,
+            onTap: () {
+              _showLogoutConfirmationDialog(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds modern setting item
+  Widget _buildModernSettingItem({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: EdgeInsets.all(AppPadding.medium),
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: AppColors.primary.withOpacity(0.08),
+                width: 1,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(AppPadding.small),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 16,
+                  color: iconColor,
+                ),
+              ),
+              SizedBox(width: AppPadding.small),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    SizedBox(height: AppPadding.small * 0.5),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_left_rounded,
+                size: 16,
+                color: theme.colorScheme.onSurface.withOpacity(0.4),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Shows coming soon dialog
+  void _showComingSoonDialog(BuildContext context, String feature) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.construction_rounded, color: AppColors.warning),
+            SizedBox(width: AppPadding.small),
+            Text('قريباً'),
+          ],
+        ),
+        content: Text('سيتم إضافة ميزة "$feature" في التحديث القادم.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('حسناً'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows the logout confirmation dialog
+  void _showLogoutConfirmationDialog(BuildContext context) {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Padding(
+            padding: EdgeInsets.all(AppPadding.large),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Icon
+                  Container(
+                  width: 80,
+                  height: 80,
+                    decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.error, AppColors.error.withOpacity(0.8)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.error.withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                    ),
+                    child: Icon(
+                      Icons.logout_rounded,
+                    size: 40,
+                    color: Colors.white,
+                    ),
+                  ),
+
+                SizedBox(height: AppPadding.large),
+
+                  // Title
+                  Text(
+                    'تسجيل الخروج',
+                  style: theme.textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                SizedBox(height: AppPadding.medium),
+
+                  // Content
+                  Text(
+                  'هل أنت متأكد من رغبتك في تسجيل الخروج من حسابك؟',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                SizedBox(height: AppPadding.extraLarge),
+
+                  // Actions
+                  Row(
+                    children: [
+                      // Cancel Button
+                      Expanded(
+                        child: Container(
+                        height: 48,
+                          decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.outline.withOpacity(0.2),
+                          ),
+                          ),
+                          child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                            child: Text(
+                            'إلغاء',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    SizedBox(width: AppPadding.medium),
+
+                      // Logout Button
+                      Expanded(
+                        child: Container(
+                        height: 48,
+                          decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.error, AppColors.error.withOpacity(0.8)],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.error.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            context.read<AuthBloc>().add(AuthSignedOut());
+                          },
+                            child: Text(
+                            'تسجيل الخروج',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Helper methods
+  bool _hasVehicleInfo(UserProfile profile) {
+    return (profile.plateNumbers != null && profile.plateNumbers!.isNotEmpty) ||
+        (profile.plateEnglishLetters != null && profile.plateEnglishLetters!.isNotEmpty) ||
+        (profile.plateArabicLetters != null && profile.plateArabicLetters!.isNotEmpty);
+  }
+
+  String _convertToArabicLetters(String englishLetters) {
+    // Simple conversion map - extend as needed
+    final Map<String, String> letterMap = {
+      'A': 'أ', 'B': 'ب', 'C': 'ج', 'D': 'د', 'E': 'ه', 'F': 'و', 'G': 'ز',
+      'H': 'ح', 'I': 'ط', 'J': 'ي', 'K': 'ك', 'L': 'ل', 'M': 'م', 'N': 'ن',
+      'O': 'س', 'P': 'ع', 'Q': 'ف', 'R': 'ص', 'S': 'ق', 'T': 'ر', 'U': 'ش',
+      'V': 'ت', 'W': 'ث', 'X': 'خ', 'Y': 'ذ', 'Z': 'ض',
+    };
+    
+    return englishLetters.split('').map((char) => letterMap[char.toUpperCase()] ?? char).join(' ');
+  }
+
+
+ 
+
+  /// Formats phone number for display: +966 5x xxx xx
+  String _formatPhoneNumber(String phone) {
+    // If phone doesn't start with +966, return as is
+    if (!phone.startsWith('+966')) {
+      return phone;
+    }
+    
+    // Remove +966 prefix to get local number
+    String localNumber = phone.substring(4);
+    
+    // Remove leading zero if present
+    if (localNumber.startsWith('0')) {
+      localNumber = localNumber.substring(1);
+    }
+    
+    // Format as +966 5x xxx xx (7 digits)
+    if (localNumber.length == 7) {
+      return '${localNumber.substring(5)} ${localNumber.substring(2, 5)} ${localNumber.substring(0, 2)} 966+';
+    }
+    
+    // If not 7 digits, return with prefix only
+    return '+966 $localNumber';
+  }
+}
+
