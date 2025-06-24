@@ -246,13 +246,15 @@ class ReportRepository extends BaseRepository {
     // Build the payload – include only columns that can change
     final data = <String, dynamic>{
       'username': profile.username,
-      'email'   : profile.email,
-      'phone'   : profile.phone,
-      if (profile.plateNumbers        != null) 'plate_numbers'        : profile.plateNumbers,
-      if (profile.plateEnglishLetters != null) 'plate_english_letters': profile.plateEnglishLetters,
-      if (profile.plateArabicLetters  != null) 'plate_arabic_letters' : profile.plateArabicLetters,
-      if (profile.iqamaId             != null) 'iqama_id'             : profile.iqamaId,
-      if (profile.workId              != null) 'work_id'              : profile.workId,
+      'email': profile.email,
+      'phone': profile.phone,
+      if (profile.plateNumbers != null) 'plate_numbers': profile.plateNumbers,
+      if (profile.plateEnglishLetters != null)
+        'plate_english_letters': profile.plateEnglishLetters,
+      if (profile.plateArabicLetters != null)
+        'plate_arabic_letters': profile.plateArabicLetters,
+      if (profile.iqamaId != null) 'iqama_id': profile.iqamaId,
+      if (profile.workId != null) 'work_id': profile.workId,
       'updated_at': DateTime.now().toIso8601String(),
     };
 
@@ -306,7 +308,7 @@ class ReportRepository extends BaseRepository {
     final currentUser = SupabaseClientWrapper.client.auth.currentUser;
     if (currentUser != null) {
       debugLog('Current user found: ${currentUser.id}');
-      
+
       // Try to get profile from supervisors table first
       try {
         debugLog('Attempting to fetch from supervisors table...');
@@ -317,7 +319,8 @@ class ReportRepository extends BaseRepository {
             .maybeSingle();
 
         if (response != null) {
-          debugLog('Successfully retrieved profile from supervisors table: $response');
+          debugLog(
+              'Successfully retrieved profile from supervisors table: $response');
           return UserProfile.fromJson(response);
         } else {
           debugLog('No profile found in supervisors table');
@@ -327,7 +330,8 @@ class ReportRepository extends BaseRepository {
       }
 
       // If no profile exists in supervisors table, create a minimal one from auth data
-      debugLog('No profile found in supervisors table, creating minimal profile from auth data');
+      debugLog(
+          'No profile found in supervisors table, creating minimal profile from auth data');
       final newProfile = UserProfile(
         id: currentUser.id,
         username: currentUser.email?.split('@').first ?? 'User',
@@ -335,7 +339,7 @@ class ReportRepository extends BaseRepository {
         phone: '',
         createdAt: DateTime.now(),
       );
-      
+
       debugLog('Using minimal profile for current session');
       return newProfile;
     } else {

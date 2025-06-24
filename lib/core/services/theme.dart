@@ -12,21 +12,21 @@ class AppColors {
   static const Color primaryDark = Color(0xff00224D);
   static const Color primary = Color(0xff27548A);
   static const Color primaryLight = Color(0xff4A90E2);
-  
+
   // Secondary colors for accents and highlights
   static const Color secondary = Color(0xff028391);
   static const Color secondaryLight = Color(0xff4DD0E1);
-  
+
   // Success, warning, and error colors
   static const Color success = Color(0xff88C273);
   static const Color warning = Color(0xffDDA853);
   static const Color error = Color(0xffAE445A);
-  
+
   // Neutral colors for backgrounds and surfaces
   static const Color surfaceLight = Color(0xffFEFAF6);
   static const Color cardBackground = Color(0xffF8FAFE);
   static const Color cardBorder = Color(0xffE8F4FD);
-  
+
   // Glass morphism colors
   static const Color glassBackground = Color(0x1A4A90E2);
   static const Color glassBorder = Color(0x334A90E2);

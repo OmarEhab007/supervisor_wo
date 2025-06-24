@@ -33,6 +33,7 @@ dependencies:
   http: ^1.2.2
   permission_handler: ^11.3.0
   device_info_plus: ^9.1.2
+  url_launcher: ^6.2.5
   
 # Routing
   go_router: ^15.1.2  

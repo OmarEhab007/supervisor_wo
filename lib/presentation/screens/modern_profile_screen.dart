@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:ui';
 import 'package:supervisor_wo/core/blocs/auth/auth_event.dart';
 import 'package:supervisor_wo/core/blocs/supervisor/supervisor_bloc.dart';
@@ -50,12 +51,15 @@ class _ModernProfileScreenBody extends StatelessWidget {
               content: Text(state.errorMessage ?? 'Failed to load profile'),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               action: SnackBarAction(
                 label: 'إعادة المحاولة',
                 textColor: Colors.white,
                 onPressed: () {
-                  context.read<SupervisorBloc>().add(const SupervisorRefreshed());
+                  context
+                      .read<SupervisorBloc>()
+                      .add(const SupervisorRefreshed());
                 },
               ),
             ),
@@ -64,54 +68,72 @@ class _ModernProfileScreenBody extends StatelessWidget {
       },
       child: Directionality(
         textDirection: TextDirection.rtl,
-      child: Scaffold(
+        child: Scaffold(
           backgroundColor: AppColors.surfaceLight,
           appBar: GradientAppBar(
-            
             title: 'الملف الشخصي',
             subtitle: 'معلوماتك الشخصية',
             automaticallyImplyLeading: false,
             showRefreshButton: false,
-            onRefresh: () => context.read<SupervisorBloc>().add(const SupervisorRefreshed()),
+            onRefresh: () =>
+                context.read<SupervisorBloc>().add(const SupervisorRefreshed()),
             isLoading: context.select<SupervisorBloc, bool>(
               (bloc) => bloc.state.status == SupervisorStatus.loading,
             ),
           ),
-        body: BlocBuilder<SupervisorBloc, SupervisorState>(
-          builder: (context, state) {
-            final isLoading = state.status == SupervisorStatus.initial ||
-                  (state.status == SupervisorStatus.loading && state.profile == null);
+          body: BlocBuilder<SupervisorBloc, SupervisorState>(
+            builder: (context, state) {
+              final isLoading = state.status == SupervisorStatus.initial ||
+                  (state.status == SupervisorStatus.loading &&
+                      state.profile == null);
 
-              if (state.status == SupervisorStatus.failure && state.profile == null) {
-                return _buildErrorState(context, state.errorMessage ?? 'Failed to load profile');
-            }
+              if (state.status == SupervisorStatus.failure &&
+                  state.profile == null) {
+                return _buildErrorState(
+                    context, state.errorMessage ?? 'Failed to load profile');
+              }
 
-            final profile = isLoading
-                ? UserProfile(
-                    id: 'fake_id',
-                    username: 'اسم المستخدم',
-                    email: 'email@email.com',
-                    phone: '+966500000000',
-                    plateNumbers: '1234',
-                    plateEnglishLetters: 'ABC',
-                    plateArabicLetters: 'أ ب ج',
-                    iqamaId: '1234567890',
-                    workId: '987654321',
-                    createdAt: DateTime.now(),
-                    updatedAt: DateTime.now(),
-                  )
-                : state.profile;
+              final profile = isLoading
+                  ? UserProfile(
+                      id: 'fake_id',
+                      username: 'اسم المستخدم',
+                      email: 'email@email.com',
+                      phone: '+966500000000',
+                      plateNumbers: '1234',
+                      plateEnglishLetters: 'ABC',
+                      plateArabicLetters: 'أ ب ج',
+                      iqamaId: '1234567890',
+                      workId: '987654321',
+                      techniciansDetailed: [
+                        Technician(
+                          name: 'أحمد محمد',
+                          profession: 'فني كهرباء',
+                          workId: '12345',
+                          phone: '+966501234567',
+                        ),
+                        Technician(
+                          name: 'سعد العلي',
+                          profession: 'فني سباكة',
+                          workId: '12346',
+                        ),
+                      ],
+                      createdAt: DateTime.now(),
+                      updatedAt: DateTime.now(),
+                    )
+                  : state.profile;
 
               return RefreshIndicator(
                 onRefresh: () async {
-                  context.read<SupervisorBloc>().add(const SupervisorRefreshed());
+                  context
+                      .read<SupervisorBloc>()
+                      .add(const SupervisorRefreshed());
                 },
                 child: Skeletonizer(
-              enabled: isLoading,
-              child: _buildProfileContent(context, profile!, isLoading),
+                  enabled: isLoading,
+                  child: _buildProfileContent(context, profile!, isLoading),
                 ),
-            );
-          },
+              );
+            },
           ),
         ),
       ),
@@ -136,9 +158,9 @@ class _ModernProfileScreenBody extends StatelessWidget {
             ),
           ],
         ),
-      child: Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-        children: [
+          children: [
             Container(
               padding: EdgeInsets.all(AppPadding.large),
               decoration: BoxDecoration(
@@ -161,13 +183,13 @@ class _ModernProfileScreenBody extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: AppPadding.small),
-          Text(
-            message,
+            Text(
+              message,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
-            textAlign: TextAlign.center,
-          ),
+              textAlign: TextAlign.center,
+            ),
             SizedBox(height: AppPadding.large),
             ElevatedButton.icon(
               onPressed: () {
@@ -185,23 +207,23 @@ class _ModernProfileScreenBody extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
   }
 
   /// Builds the main profile content
-  Widget _buildProfileContent(BuildContext context, UserProfile profile, bool isLoading) {
+  Widget _buildProfileContent(
+      BuildContext context, UserProfile profile, bool isLoading) {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.all(AppPadding.small),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          
           // Personal Information
           _buildModernInfoCard(
             context: context,
@@ -247,8 +269,7 @@ class _ModernProfileScreenBody extends StatelessWidget {
           SizedBox(height: AppPadding.medium),
 
           // Vehicle Information
-          if (_hasVehicleInfo(profile))
-            _buildVehicleCard(context, profile),
+          if (_hasVehicleInfo(profile)) _buildVehicleCard(context, profile),
 
           if (_hasVehicleInfo(profile)) SizedBox(height: AppPadding.medium),
 
@@ -273,6 +294,12 @@ class _ModernProfileScreenBody extends StatelessWidget {
           if (profile.workId != null && profile.workId!.isNotEmpty)
             SizedBox(height: AppPadding.medium),
 
+          // Technicians Information
+          if (_hasTechniciansInfo(profile))
+            _buildTechniciansCard(context, profile),
+
+          if (_hasTechniciansInfo(profile)) SizedBox(height: AppPadding.medium),
+
           // Settings and Actions
           _buildModernSettingsCard(context, profile),
 
@@ -281,8 +308,6 @@ class _ModernProfileScreenBody extends StatelessWidget {
       ),
     );
   }
-
-
 
   /// Builds modern information card
   Widget _buildModernInfoCard({
@@ -473,7 +498,10 @@ class _ModernProfileScreenBody extends StatelessWidget {
                   padding: EdgeInsets.all(AppPadding.small),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.secondary, AppColors.secondary.withOpacity(0.8)],
+                      colors: [
+                        AppColors.secondary,
+                        AppColors.secondary.withOpacity(0.8)
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
@@ -531,7 +559,8 @@ class _ModernProfileScreenBody extends StatelessWidget {
                       englishNumbers: profile.plateNumbers ?? '',
                       englishLetters: profile.plateEnglishLetters ?? '',
                       arabicLetters: profile.plateArabicLetters ??
-                          _convertToArabicLetters(profile.plateEnglishLetters ?? ''),
+                          _convertToArabicLetters(
+                              profile.plateEnglishLetters ?? ''),
                     ),
                   ),
                 ),
@@ -544,7 +573,8 @@ class _ModernProfileScreenBody extends StatelessWidget {
   }
 
   /// Builds modern settings card
-  Widget _buildModernSettingsCard(BuildContext context, [UserProfile? profile]) {
+  Widget _buildModernSettingsCard(BuildContext context,
+      [UserProfile? profile]) {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -626,10 +656,6 @@ class _ModernProfileScreenBody extends StatelessWidget {
               context.push('/edit-profile', extra: profile);
             },
           ),
-
-          
-
-          
 
           _buildModernSettingItem(
             context: context,
@@ -765,32 +791,35 @@ class _ModernProfileScreenBody extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (context) => Dialog(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
                 blurRadius: 30,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Padding(
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Padding(
             padding: EdgeInsets.all(AppPadding.large),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Icon
-                  Container(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon
+                Container(
                   width: 80,
                   height: 80,
-                    decoration: BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.error, AppColors.error.withOpacity(0.8)],
+                      colors: [
+                        AppColors.error,
+                        AppColors.error.withOpacity(0.8)
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
@@ -800,78 +829,81 @@ class _ModernProfileScreenBody extends StatelessWidget {
                         offset: const Offset(0, 8),
                       ),
                     ],
-                    ),
-                    child: Icon(
-                      Icons.logout_rounded,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
                     size: 40,
                     color: Colors.white,
-                    ),
                   ),
+                ),
 
                 SizedBox(height: AppPadding.large),
 
-                  // Title
-                  Text(
-                    'تسجيل الخروج',
+                // Title
+                Text(
+                  'تسجيل الخروج',
                   style: theme.textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    textAlign: TextAlign.center,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
                   ),
+                  textAlign: TextAlign.center,
+                ),
 
                 SizedBox(height: AppPadding.medium),
 
-                  // Content
-                  Text(
+                // Content
+                Text(
                   'هل أنت متأكد من رغبتك في تسجيل الخروج من حسابك؟',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
-                      height: 1.4,
-                    ),
-                    textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    height: 1.4,
                   ),
+                  textAlign: TextAlign.center,
+                ),
 
                 SizedBox(height: AppPadding.extraLarge),
 
-                  // Actions
-                  Row(
-                    children: [
-                      // Cancel Button
-                      Expanded(
-                        child: Container(
+                // Actions
+                Row(
+                  children: [
+                    // Cancel Button
+                    Expanded(
+                      child: Container(
                         height: 48,
-                          decoration: BoxDecoration(
+                        decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: theme.colorScheme.outline.withOpacity(0.2),
                           ),
-                          ),
-                          child: TextButton(
+                        ),
+                        child: TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                            child: Text(
+                          child: Text(
                             'إلغاء',
                             style: theme.textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: theme.colorScheme.onSurface,
-                              ),
                             ),
                           ),
                         ),
                       ),
+                    ),
 
                     SizedBox(width: AppPadding.medium),
 
-                      // Logout Button
-                      Expanded(
-                        child: Container(
+                    // Logout Button
+                    Expanded(
+                      child: Container(
                         height: 48,
-                          decoration: BoxDecoration(
+                        decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [AppColors.error, AppColors.error.withOpacity(0.8)],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
+                            colors: [
+                              AppColors.error,
+                              AppColors.error.withOpacity(0.8)
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.error.withOpacity(0.3),
@@ -885,19 +917,19 @@ class _ModernProfileScreenBody extends StatelessWidget {
                             Navigator.of(context).pop();
                             context.read<AuthBloc>().add(AuthSignedOut());
                           },
-                            child: Text(
+                          child: Text(
                             'تسجيل الخروج',
                             style: theme.textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                              ),
                             ),
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -905,27 +937,364 @@ class _ModernProfileScreenBody extends StatelessWidget {
     );
   }
 
+  /// Builds technicians information section with modern cards
+  Widget _buildTechniciansCard(BuildContext context, UserProfile profile) {
+    return _buildModernInfoCard(
+      context: context,
+      title: 'الفريق',
+      icon: Icons.engineering_rounded,
+      iconColor: AppColors.success,
+      children: [
+        // Technicians Cards Container
+        Container(
+          padding: EdgeInsets.all(AppPadding.medium),
+          child: Column(
+            children: [
+              // Technicians Cards
+              ...profile.techniciansDetailed!.asMap().entries.map((entry) {
+                final index = entry.key;
+                final technician = entry.value;
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index == profile.techniciansDetailed!.length - 1
+                        ? 0
+                        : AppPadding.medium,
+                  ),
+                  child: _buildModernTechnicianCard(context, technician),
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds modern individual technician card
+  Widget _buildModernTechnicianCard(
+      BuildContext context, Technician technician) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.success.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
+          ),
+        ],
+        border: Border.all(
+          color: AppColors.success.withOpacity(0.08),
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          children: [
+            // Header with gradient
+            Container(
+              padding: EdgeInsets.all(AppPadding.medium),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.success.withOpacity(0.05),
+                    AppColors.success.withOpacity(0.02),
+                  ],
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Modern Avatar
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.success,
+                          AppColors.success.withOpacity(0.8),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.success.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.engineering_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  SizedBox(width: AppPadding.medium),
+
+                  // Technician Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name
+                        Text(
+                          technician.name,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.normal,
+                            color: theme.colorScheme.onSurface,
+                            fontSize: AppSizes.blockHeight * 1.8,
+                            height: 1.2,
+                          ),
+                        ),
+                        SizedBox(height: AppPadding.small * 0.5),
+
+                        // Profession with icon
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppPadding.small,
+                            vertical: AppPadding.small * 0.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.work_outline_rounded,
+                                size: 14,
+                                color: AppColors.success,
+                              ),
+                              SizedBox(width: AppPadding.small * 0.5),
+                              Text(
+                                technician.profession,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: AppColors.success,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Phone section (if available)
+            if (technician.phone != null && technician.phone!.isNotEmpty)
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _makePhoneCall(context, technician.phone!);
+                  },
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(AppPadding.medium),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        top: BorderSide(
+                          color: AppColors.success.withOpacity(0.08),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        // Phone icon
+                        Container(
+                          padding: EdgeInsets.all(AppPadding.small * 0.8),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.phone_rounded,
+                            size: 16,
+                            color: AppColors.success,
+                          ),
+                        ),
+                        SizedBox(width: AppPadding.small),
+
+                        // Phone number
+                        Expanded(
+                          child: Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'رقم الهاتف',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withOpacity(0.6),
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                SizedBox(height: AppPadding.small * 0.3),
+                                Text(
+                                  _formatPhoneNumber(technician.phone!),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.success,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // Call button
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            _makePhoneCall(context, technician.phone!);
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(AppPadding.small * 0.8),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.success,
+                                  AppColors.success.withOpacity(0.8)
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.success.withOpacity(0.3),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.call_rounded,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Makes a phone call to the given number
+  Future<void> _makePhoneCall(BuildContext context, String phoneNumber) async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        if (context.mounted) {
+          _showErrorSnackBar(context, 'لا يمكن إجراء المكالمة على هذا الجهاز');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showErrorSnackBar(context, 'حدث خطأ أثناء محاولة الاتصال');
+      }
+    }
+  }
+
+  /// Shows error snackbar
+  void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   /// Helper methods
+  bool _hasTechniciansInfo(UserProfile profile) {
+    return profile.techniciansDetailed != null &&
+        profile.techniciansDetailed!.isNotEmpty;
+  }
+
   bool _hasVehicleInfo(UserProfile profile) {
     return (profile.plateNumbers != null && profile.plateNumbers!.isNotEmpty) ||
-        (profile.plateEnglishLetters != null && profile.plateEnglishLetters!.isNotEmpty) ||
-        (profile.plateArabicLetters != null && profile.plateArabicLetters!.isNotEmpty);
+        (profile.plateEnglishLetters != null &&
+            profile.plateEnglishLetters!.isNotEmpty) ||
+        (profile.plateArabicLetters != null &&
+            profile.plateArabicLetters!.isNotEmpty);
   }
 
   String _convertToArabicLetters(String englishLetters) {
     // Simple conversion map - extend as needed
     final Map<String, String> letterMap = {
-      'A': 'أ', 'B': 'ب', 'C': 'ج', 'D': 'د', 'E': 'ه', 'F': 'و', 'G': 'ز',
-      'H': 'ح', 'I': 'ط', 'J': 'ي', 'K': 'ك', 'L': 'ل', 'M': 'م', 'N': 'ن',
-      'O': 'س', 'P': 'ع', 'Q': 'ف', 'R': 'ص', 'S': 'ق', 'T': 'ر', 'U': 'ش',
-      'V': 'ت', 'W': 'ث', 'X': 'خ', 'Y': 'ذ', 'Z': 'ض',
+      'A': 'أ',
+      'B': 'ب',
+      'C': 'ج',
+      'D': 'د',
+      'E': 'ه',
+      'F': 'و',
+      'G': 'ز',
+      'H': 'ح',
+      'I': 'ط',
+      'J': 'ي',
+      'K': 'ك',
+      'L': 'ل',
+      'M': 'م',
+      'N': 'ن',
+      'O': 'س',
+      'P': 'ع',
+      'Q': 'ف',
+      'R': 'ص',
+      'S': 'ق',
+      'T': 'ر',
+      'U': 'ش',
+      'V': 'ت',
+      'W': 'ث',
+      'X': 'خ',
+      'Y': 'ذ',
+      'Z': 'ض',
     };
-    
-    return englishLetters.split('').map((char) => letterMap[char.toUpperCase()] ?? char).join(' ');
+
+    return englishLetters
+        .split('')
+        .map((char) => letterMap[char.toUpperCase()] ?? char)
+        .join(' ');
   }
-
-
- 
 
   /// Formats phone number for display: +966 5x xxx xx
   String _formatPhoneNumber(String phone) {
@@ -933,22 +1302,21 @@ class _ModernProfileScreenBody extends StatelessWidget {
     if (!phone.startsWith('+966')) {
       return phone;
     }
-    
+
     // Remove +966 prefix to get local number
     String localNumber = phone.substring(4);
-    
+
     // Remove leading zero if present
     if (localNumber.startsWith('0')) {
       localNumber = localNumber.substring(1);
     }
-    
+
     // Format as +966 5x xxx xx (7 digits)
     if (localNumber.length == 7) {
       return '${localNumber.substring(5)} ${localNumber.substring(2, 5)} ${localNumber.substring(0, 2)} 966+';
     }
-    
+
     // If not 7 digits, return with prefix only
     return '+966 $localNumber';
   }
 }
-
