@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supervisor_wo/core/blocs/auth/auth.dart';
 import 'package:supervisor_wo/presentation/screens/home_screen.dart';
+import 'package:supervisor_wo/presentation/widgets/auto_update_wrapper.dart';
 import 'package:supervisor_wo/presentation/screens/splash_screen.dart';
 import 'package:supervisor_wo/presentation/screens/modern_profile_screen.dart';
 import 'package:supervisor_wo/presentation/screens/reports_screen.dart';
@@ -14,7 +15,15 @@ import 'package:supervisor_wo/presentation/screens/report_completion_screen.dart
 import 'package:supervisor_wo/presentation/screens/maintenance_completion_screen.dart';
 import 'package:supervisor_wo/presentation/screens/completion_rate_screen.dart';
 import 'package:supervisor_wo/presentation/screens/edit_profile_screen.dart';
+import 'package:supervisor_wo/presentation/screens/maintenance_schools_screen.dart';
+import 'package:supervisor_wo/presentation/screens/maintenance_count_form_screen.dart';
+import 'package:supervisor_wo/presentation/screens/damage_schools_screen.dart';
+import 'package:supervisor_wo/presentation/screens/damage_count_form_screen.dart';
+import 'package:supervisor_wo/presentation/screens/schools_list_screen.dart';
+import 'package:supervisor_wo/presentation/screens/school_options_screen.dart';
 import 'package:supervisor_wo/models/school_model.dart';
+import 'package:supervisor_wo/models/maintenance_count_model.dart';
+import 'package:supervisor_wo/models/damage_count_model.dart';
 import 'package:supervisor_wo/models/report_model.dart';
 import 'package:supervisor_wo/models/maintenance_report_model.dart';
 import 'package:supervisor_wo/models/user_profile.dart';
@@ -79,7 +88,9 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/',
       name: 'home',
-      builder: (context, state) => const HomeScreen(),
+      builder: (context, state) => const AutoUpdateWrapper(
+        child: HomeScreen(),
+      ),
     ),
     GoRoute(
       path: '/reports',
@@ -139,7 +150,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final schoolId = state.pathParameters['schoolId'] ?? '';
         String? schoolName;
-        
+
         // Handle both Map and String formats for backward compatibility
         if (state.extra is Map<String, dynamic>) {
           final extraData = state.extra as Map<String, dynamic>;
@@ -147,7 +158,7 @@ final GoRouter appRouter = GoRouter(
         } else {
           schoolName = state.extra as String?;
         }
-        
+
         return SchoolMaintenanceReportsScreen(
             schoolId: schoolId, schoolName: schoolName);
       },
@@ -213,11 +224,90 @@ final GoRouter appRouter = GoRouter(
     //   builder: (context, state) => const LateReportsScreen(),
     // ),
 
+    // Maintenance schools routes
+    GoRoute(
+      path: '/maintenance-schools',
+      name: 'maintenance_schools',
+      builder: (context, state) => const MaintenanceSchoolsScreen(),
+    ),
+    GoRoute(
+      path: '/maintenance-count-form/:schoolId',
+      name: 'maintenance_count_form',
+      builder: (context, state) {
+        final schoolId = state.pathParameters['schoolId'] ?? '';
+        String schoolName = 'مدرسة';
+        bool isEdit = false;
+        MaintenanceCountModel? existingCount;
+
+        if (state.extra is Map<String, dynamic>) {
+          final extraData = state.extra as Map<String, dynamic>;
+          schoolName = extraData['schoolName'] as String? ?? schoolName;
+          isEdit = extraData['isEdit'] as bool? ?? false;
+          existingCount = extraData['existingCount'] as MaintenanceCountModel?;
+        }
+
+        return MaintenanceCountFormScreen(
+          schoolId: schoolId,
+          schoolName: schoolName,
+          isEdit: isEdit,
+          existingCount: existingCount,
+        );
+      },
+    ),
+
+    // Damage count routes
+    GoRoute(
+      path: '/damage-schools',
+      name: 'damage_schools',
+      builder: (context, state) => const DamageSchoolsScreen(),
+    ),
+    GoRoute(
+      path: '/damage-count-form/:schoolId',
+      name: 'damage_count_form',
+      builder: (context, state) {
+        final schoolId = state.pathParameters['schoolId'] ?? '';
+        String schoolName = 'مدرسة';
+        bool isEdit = false;
+        DamageCountModel? existingCount;
+
+        if (state.extra is Map<String, dynamic>) {
+          final extraData = state.extra as Map<String, dynamic>;
+          schoolName = extraData['schoolName'] as String? ?? schoolName;
+          isEdit = extraData['isEdit'] as bool? ?? false;
+          existingCount = extraData['existingCount'] as DamageCountModel?;
+        }
+
+        return DamageCountFormScreen(
+          schoolId: schoolId,
+          schoolName: schoolName,
+          isEdit: isEdit,
+          existingCount: existingCount,
+        );
+      },
+    ),
+
     // Completion rate screen route
     GoRoute(
       path: '/completion-rate',
       name: 'completion_rate',
       builder: (context, state) => const CompletionRateScreen(),
+    ),
+
+    // Schools list route
+    GoRoute(
+      path: '/schools-list',
+      name: 'schools_list',
+      builder: (context, state) => const SchoolsListScreen(),
+    ),
+
+    // School options route
+    GoRoute(
+      path: '/school-options',
+      name: 'school_options',
+      builder: (context, state) {
+        final school = state.extra as School;
+        return SchoolOptionsScreen(school: school);
+      },
     ),
   ],
   errorBuilder: (context, state) => Scaffold(

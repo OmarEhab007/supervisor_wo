@@ -45,7 +45,10 @@ class ReportsRefreshButton<B extends StateStreamable<S>, S>
                     height: 22,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Icon(Icons.refresh, color: theme.canvasColor),
+                : ImageIcon(
+                    const AssetImage('assets/icon/refresh.png'),
+                    color: theme.canvasColor,
+                  ),
           ),
         );
       },

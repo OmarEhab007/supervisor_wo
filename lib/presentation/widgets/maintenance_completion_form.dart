@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supervisor_wo/presentation/widgets/image_picker_widget.dart';
@@ -188,7 +187,7 @@ Widget buildMaintenanceCompletionFormCard(
 
                 // Image Picker Widget
                 ImagePickerWidget(
-                  maxImages: 10,
+                  // maxImages removed to use unlimited default
                   images: state.completionPhotos,
                   onImagesChanged: (images) {
                     // Just store the local image paths, don't upload immediately

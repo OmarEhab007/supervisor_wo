@@ -93,7 +93,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   void _initializeControllers() {
     _usernameController = TextEditingController(text: widget.profile.username);
     _emailController = TextEditingController(text: widget.profile.email);
-    
+
     // Format phone number for editing - remove +966 prefix and show only local number (7 digits)
     String phoneForEditing = widget.profile.phone;
     if (phoneForEditing.startsWith('+966')) {
@@ -104,12 +104,17 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       phoneForEditing = phoneForEditing.substring(1);
     }
     _phoneController = TextEditingController(text: phoneForEditing);
-    
-    _iqamaController = TextEditingController(text: widget.profile.iqamaId ?? '');
-    _workIdController = TextEditingController(text: widget.profile.workId ?? '');
-    _plateNumbersController = TextEditingController(text: widget.profile.plateNumbers ?? '');
-    _plateEnglishController = TextEditingController(text: widget.profile.plateEnglishLetters ?? '');
-    _plateArabicController = TextEditingController(text: widget.profile.plateArabicLetters ?? '');
+
+    _iqamaController =
+        TextEditingController(text: widget.profile.iqamaId ?? '');
+    _workIdController =
+        TextEditingController(text: widget.profile.workId ?? '');
+    _plateNumbersController =
+        TextEditingController(text: widget.profile.plateNumbers ?? '');
+    _plateEnglishController =
+        TextEditingController(text: widget.profile.plateEnglishLetters ?? '');
+    _plateArabicController =
+        TextEditingController(text: widget.profile.plateArabicLetters ?? '');
   }
 
   void _initializeFocusNodes() {
@@ -144,15 +149,17 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     if (currentPhoneForComparison.startsWith('0')) {
       currentPhoneForComparison = currentPhoneForComparison.substring(1);
     }
-    
+
     final hasChanges = _usernameController.text != widget.profile.username ||
         _emailController.text != widget.profile.email ||
         _phoneController.text != currentPhoneForComparison ||
         _iqamaController.text != (widget.profile.iqamaId ?? '') ||
         _workIdController.text != (widget.profile.workId ?? '') ||
         _plateNumbersController.text != (widget.profile.plateNumbers ?? '') ||
-        _plateEnglishController.text != (widget.profile.plateEnglishLetters ?? '') ||
-        _plateArabicController.text != (widget.profile.plateArabicLetters ?? '');
+        _plateEnglishController.text !=
+            (widget.profile.plateEnglishLetters ?? '') ||
+        _plateArabicController.text !=
+            (widget.profile.plateArabicLetters ?? '');
 
     // Check if form is valid
     final isValid = _validateUsername(_usernameController.text) == null &&
@@ -236,7 +243,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   controller: _usernameController,
                   focusNode: _focusNodes['username']!,
                   label: 'اسم المستخدم',
-                  icon: Icons.account_circle_rounded,
+                  icon: Icons.person_rounded,
                   validator: _validateUsername,
                   textInputAction: TextInputAction.next,
                 ),
@@ -592,10 +599,11 @@ class _EditProfileScreenState extends State<EditProfileScreen>
             );
             return;
           }
-          
+
           if (_validatePhone(value) != null) {
             setState(() {
-              _errors[_phoneController.hashCode.toString()] = _validatePhone(value);
+              _errors[_phoneController.hashCode.toString()] =
+                  _validatePhone(value);
             });
           } else {
             setState(() {
@@ -669,7 +677,10 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     decoration: BoxDecoration(
                       gradient: _hasChanges && _isValid
                           ? LinearGradient(
-                              colors: [AppColors.primary, AppColors.primaryLight],
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primaryLight
+                              ],
                             )
                           : null,
                       color: !_hasChanges || !_isValid
@@ -708,7 +719,10 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                             )
                           : Text(
                               'حفظ التغييرات',
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
@@ -750,23 +764,23 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     if (value == null || value.trim().isEmpty) {
       return 'رقم الهاتف مطلوب';
     }
-    
+
     final phoneNumber = value.trim();
-    
+
     // Saudi phone numbers should be 9 digits starting with 5
     if (phoneNumber.length != 7) {
       return 'رقم الهاتف يجب أن يكون 7 أرقام';
     }
-    
+
     if (!phoneNumber.startsWith('5')) {
       return 'رقم الهاتف يجب أن يبدأ بـ 5';
     }
-    
+
     // Check if all characters are digits
     if (!RegExp(r'^\d{7}$').hasMatch(phoneNumber)) {
       return 'رقم الهاتف يجب أن يحتوي على أرقام فقط';
     }
-    
+
     return null;
   }
 
@@ -794,20 +808,32 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         formattedPhone = formattedPhone.substring(1);
       }
       formattedPhone = '+966$formattedPhone';
-      
+
       final updatedProfile = widget.profile.copyWith(
         username: _usernameController.text.trim(),
         email: _emailController.text.trim(),
         phone: formattedPhone,
-        iqamaId: _iqamaController.text.trim().isEmpty ? null : _iqamaController.text.trim(),
-        workId: _workIdController.text.trim().isEmpty ? null : _workIdController.text.trim(),
-        plateNumbers: _plateNumbersController.text.trim().isEmpty ? null : _plateNumbersController.text.trim(),
-        plateEnglishLetters: _plateEnglishController.text.trim().isEmpty ? null : _plateEnglishController.text.trim(),
-        plateArabicLetters: _plateArabicController.text.trim().isEmpty ? null : _plateArabicController.text.trim(),
+        iqamaId: _iqamaController.text.trim().isEmpty
+            ? null
+            : _iqamaController.text.trim(),
+        workId: _workIdController.text.trim().isEmpty
+            ? null
+            : _workIdController.text.trim(),
+        plateNumbers: _plateNumbersController.text.trim().isEmpty
+            ? null
+            : _plateNumbersController.text.trim(),
+        plateEnglishLetters: _plateEnglishController.text.trim().isEmpty
+            ? null
+            : _plateEnglishController.text.trim(),
+        plateArabicLetters: _plateArabicController.text.trim().isEmpty
+            ? null
+            : _plateArabicController.text.trim(),
         updatedAt: DateTime.now(),
       );
 
-      context.read<SupervisorBloc>().add(SupervisorProfileUpdated(updatedProfile));
+      context
+          .read<SupervisorBloc>()
+          .add(SupervisorProfileUpdated(updatedProfile));
     }
   }
 
@@ -824,17 +850,20 @@ class _EditProfileScreenState extends State<EditProfileScreen>
             Text(
               'تجاهل التغييرات؟',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
             ),
           ],
         ),
         content: Text(
           'سيتم فقدان جميع التغييرات غير المحفوظة.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-          ),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.8),
+              ),
         ),
         actions: [
           TextButton(
@@ -842,9 +871,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
             child: Text(
               'الاستمرار في التعديل',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-              ),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
             ),
           ),
           TextButton(
@@ -856,9 +885,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
             child: Text(
               'تجاهل التغييرات',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.error,
-              ),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.error,
+                  ),
             ),
           ),
         ],
@@ -869,19 +898,19 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-                  content: Row(
-            children: [
-              Icon(Icons.check_circle_rounded, color: Colors.white),
-              SizedBox(width: AppPadding.small),
-              Text(
-                'تم حفظ التغييرات بنجاح',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white, // Use white for snackbar text
-                ),
-              ),
-            ],
-          ),
+        content: Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: Colors.white),
+            SizedBox(width: AppPadding.small),
+            Text(
+              'تم حفظ التغييرات بنجاح',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white, // Use white for snackbar text
+                  ),
+            ),
+          ],
+        ),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -893,21 +922,21 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   void _showErrorMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-                  content: Row(
-            children: [
-              Icon(Icons.error_rounded, color: Colors.white),
-              SizedBox(width: AppPadding.small),
-              Expanded(
-                child: Text(
-                  message,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white, // Use white for snackbar text
-                  ),
-                ),
+        content: Row(
+          children: [
+            Icon(Icons.error_rounded, color: Colors.white),
+            SizedBox(width: AppPadding.small),
+            Expanded(
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white, // Use white for snackbar text
+                    ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -915,4 +944,4 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       ),
     );
   }
-} 
+}

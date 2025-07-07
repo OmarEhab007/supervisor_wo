@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:supervisor_wo/core/utils/app_sizes.dart';
 
 class ReportImagesScreen extends StatefulWidget {
   final List<String> images;
@@ -41,6 +42,7 @@ class _ReportImagesScreenState extends State<ReportImagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppSizes.init(context);
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -72,8 +74,8 @@ class _ReportImagesScreenState extends State<ReportImagesScreen> {
               itemCount: widget.images.length,
               loadingBuilder: (context, event) => Center(
                 child: SizedBox(
-                  width: 20.0,
-                  height: 20.0,
+                  width: AppSizes.blockWidth * 5,
+                  height: AppSizes.blockWidth * 5,
                   child: CircularProgressIndicator(
                     value: event == null
                         ? 0
@@ -88,8 +90,8 @@ class _ReportImagesScreenState extends State<ReportImagesScreen> {
             ),
             // Thumbnail preview
             Container(
-              height: 80,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              height: AppSizes.blockHeight * 10,
+              padding: EdgeInsets.symmetric(horizontal: AppPadding.small),
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: widget.images.length,
@@ -103,9 +105,9 @@ class _ReportImagesScreenState extends State<ReportImagesScreen> {
                       );
                     },
                     child: Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 8,
+                      margin: EdgeInsets.symmetric(
+                        horizontal: AppPadding.small * 0.3,
+                        vertical: AppPadding.small,
                       ),
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -114,20 +116,22 @@ class _ReportImagesScreenState extends State<ReportImagesScreen> {
                               : Colors.white,
                           width: 2,
                         ),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.blockWidth * 2),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.blockWidth * 1.5),
                         child: Image.network(
                           widget.images[index],
-                          width: 60,
-                          height: 60,
+                          width: AppSizes.blockWidth * 15,
+                          height: AppSizes.blockWidth * 15,
                           fit: BoxFit.cover,
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return Container(
-                              width: 60,
-                              height: 60,
+                              width: AppSizes.blockWidth * 15,
+                              height: AppSizes.blockWidth * 15,
                               color: Colors.grey[800],
                               child: const Center(
                                 child: CircularProgressIndicator(),

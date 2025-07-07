@@ -49,8 +49,8 @@ class SchoolsState extends Equatable {
   });
 
   /// Returns the currently selected school
-  School? get selectedSchool => schools.isEmpty 
-      ? null 
+  School? get selectedSchool => schools.isEmpty
+      ? null
       : schools.firstWhere(
           (school) => school.id == selectedSchoolId,
           orElse: () => schools.first,
@@ -70,7 +70,7 @@ class SchoolsState extends Equatable {
       if (searchQuery.isNotEmpty) {
         final query = searchQuery.toLowerCase();
         return school.name.toLowerCase().contains(query) ||
-            school.location.toLowerCase().contains(query);
+            school.address.toLowerCase().contains(query);
       }
 
       return true;
@@ -98,11 +98,11 @@ class SchoolsState extends Equatable {
 
   @override
   List<Object?> get props => [
-    status,
-    schools,
-    selectedSchoolId,
-    searchQuery,
-    showOnlyEmergency,
-    errorMessage,
-  ];
+        status,
+        schools,
+        selectedSchoolId,
+        searchQuery,
+        showOnlyEmergency,
+        errorMessage,
+      ];
 }

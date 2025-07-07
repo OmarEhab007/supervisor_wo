@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supervisor_wo/presentation/widgets/image_picker_widget.dart';
@@ -204,7 +203,7 @@ Widget buildCompletionFormCard(
                   child: ImagePickerWidget(
                     images: state.completionPhotos,
                     onImagesChanged: cubit.completionPhotosChanged,
-                    maxImages: 10,
+                    // maxImages removed to use unlimited default
                   ),
                 ),
 
@@ -371,8 +370,9 @@ Future<void> handleCompletion(
 
   // Show enhanced loading indicator with progress
   int uploadProgress = 0;
-  int totalImages = state.completionPhotos.where((path) => !path.startsWith('http')).length;
-  
+  int totalImages =
+      state.completionPhotos.where((path) => !path.startsWith('http')).length;
+
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -405,12 +405,13 @@ Future<void> handleCompletion(
                 ),
                 SizedBox(height: AppPadding.large),
                 Text(
-                  totalImages > 0 
+                  totalImages > 0
                       ? 'جاري رفع الصور ($uploadProgress/$totalImages)'
                       : 'جاري إكمال البلاغ...',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1A2F59),
+                    color: Theme.of(context).textTheme.bodyLarge?.color ??
+                        const Color(0xFF1A2F59),
                     fontWeight: FontWeight.w500,
                     fontSize: 16,
                   ),
@@ -420,7 +421,8 @@ Future<void> handleCompletion(
                   LinearProgressIndicator(
                     value: totalImages > 0 ? uploadProgress / totalImages : 0,
                     backgroundColor: Colors.grey[300],
-                    valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).primaryColor),
                   ),
                 ],
                 SizedBox(height: AppPadding.small),
@@ -443,7 +445,7 @@ Future<void> handleCompletion(
   try {
     // Upload images in parallel with progress tracking
     List<String> uploadedUrls = [];
-    
+
     if (state.completionPhotos.isNotEmpty) {
       uploadedUrls = await CloudinaryService.uploadImagesInParallel(
         state.completionPhotos,
@@ -463,12 +465,12 @@ Future<void> handleCompletion(
     }
 
     context.read<ReportsBloc>().add(
-      ReportCompleted(
-        reportId: report.id,
-        completionNote: state.completionNote,
-        completionPhotos: uploadedUrls,
-      ),
-    );
+          ReportCompleted(
+            reportId: report.id,
+            completionNote: state.completionNote,
+            completionPhotos: uploadedUrls,
+          ),
+        );
   } catch (e) {
     // Pop the dialog in case of an error
     if (navigator.canPop()) {

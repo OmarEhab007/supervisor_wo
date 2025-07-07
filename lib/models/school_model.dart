@@ -4,82 +4,91 @@ import 'package:equatable/equatable.dart';
 class School extends Equatable {
   /// Unique identifier for the school
   final String id;
-  
+
   /// Name of the school
   final String name;
-  
-  /// Location of the school
-  final String location;
-  
+
+  /// Address of the school (optional)
+  final String address;
+
   /// Number of reports associated with this school
   final int reportsCount;
-  
+
   /// Whether this school has any emergency reports
   final bool hasEmergencyReports;
-  
-  /// Contact information for the school
-  final String contactInfo;
-  
+
+  /// Last visit date (completion date of the last report)
+  final DateTime? lastVisitDate;
+  final String? lastVisitSource; // Source of the last visit date
+
   /// Creates a new School instance
   const School({
     required this.id,
     required this.name,
-    required this.location,
+    this.address = '',
     required this.reportsCount,
     this.hasEmergencyReports = false,
-    this.contactInfo = '',
+    this.lastVisitDate,
+    this.lastVisitSource,
   });
-  
+
   /// Creates a School from a map (JSON)
   factory School.fromMap(Map<String, dynamic> map) {
     return School(
       id: map['id'] as String,
       name: map['name'] as String,
-      location: map['location'] as String,
-      reportsCount: map['reports_count'] as int,
+      address: map['address'] as String? ?? '',
+      reportsCount: map['reports_count'] as int? ?? 0,
       hasEmergencyReports: map['has_emergency_reports'] as bool? ?? false,
-      contactInfo: map['contact_info'] as String? ?? '',
+      lastVisitDate: map['last_visit_date'] != null
+          ? DateTime.parse(map['last_visit_date'] as String)
+          : null,
+      lastVisitSource: map['last_visit_source'] as String?,
     );
   }
-  
+
   /// Converts the School to a map (JSON)
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
-      'location': location,
+      'address': address,
       'reports_count': reportsCount,
       'has_emergency_reports': hasEmergencyReports,
-      'contact_info': contactInfo,
+      'last_visit_date': lastVisitDate?.toIso8601String(),
+      'last_visit_source': lastVisitSource,
     };
   }
-  
+
   /// Creates a copy of this School with the given fields replaced with new values
   School copyWith({
     String? id,
     String? name,
-    String? location,
+    String? address,
     int? reportsCount,
     bool? hasEmergencyReports,
-    String? contactInfo,
+    DateTime? lastVisitDate,
+    String? lastVisitSource,
   }) {
     return School(
       id: id ?? this.id,
       name: name ?? this.name,
-      location: location ?? this.location,
+      address: address ?? this.address,
       reportsCount: reportsCount ?? this.reportsCount,
       hasEmergencyReports: hasEmergencyReports ?? this.hasEmergencyReports,
-      contactInfo: contactInfo ?? this.contactInfo,
+      lastVisitDate: lastVisitDate ?? this.lastVisitDate,
+      lastVisitSource: lastVisitSource ?? this.lastVisitSource,
     );
   }
-  
+
   @override
   List<Object?> get props => [
-    id,
-    name,
-    location,
-    reportsCount,
-    hasEmergencyReports,
-    contactInfo,
-  ];
+        id,
+        name,
+        address,
+        reportsCount,
+        hasEmergencyReports,
+        lastVisitDate,
+        lastVisitSource,
+      ];
 }

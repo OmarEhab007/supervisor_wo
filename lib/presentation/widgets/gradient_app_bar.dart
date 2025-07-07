@@ -134,8 +134,8 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: AnimatedRotation(
               turns: (isLoading ?? false) ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 800),
-              child: Icon(
-                Icons.refresh_rounded,
+              child: ImageIcon(
+                const AssetImage('assets/icon/refresh.png'),
                 color: Colors.white,
                 size: AppSizes.blockHeight * 2.4,
               ),

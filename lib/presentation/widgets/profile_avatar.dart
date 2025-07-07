@@ -9,7 +9,7 @@ class ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppSizes.init(context);
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -24,17 +24,10 @@ class ProfileAvatar extends StatelessWidget {
           width: 48,
           height: 48,
           alignment: Alignment.center,
-          child: Icon(
-            Icons.account_circle_rounded,
+          child: ImageIcon(
+            const AssetImage('assets/icon/profile.png'),
             color: Colors.white,
-            size: 32,
-            shadows: [
-              Shadow(
-                color: Colors.black.withOpacity(0.2),
-                offset: const Offset(0, 1),
-                blurRadius: 2,
-              ),
-            ],
+            size: AppSizes.blockHeight * 3,
           ),
         ),
       ),

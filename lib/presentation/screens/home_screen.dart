@@ -51,7 +51,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: AppColors.primary.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -69,7 +69,7 @@ class HomeScreen extends StatelessWidget {
                     Text(
                       'مرحباً بك',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: AppSizes.blockHeight * 1.6, // Bigger subtitle
                       ),
                     ),
@@ -81,7 +81,7 @@ class HomeScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         shadows: [
                           Shadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             offset: const Offset(0, 2),
                             blurRadius: 4,
                           ),
@@ -100,10 +100,12 @@ class HomeScreen extends StatelessWidget {
                     icon: AnimatedRotation(
                       turns: context.select<HomeBloc, bool>(
                         (bloc) => bloc.state.status == HomeStatus.loading,
-                      ) ? 1.0 : 0.0,
+                      )
+                          ? 1.0
+                          : 0.0,
                       duration: const Duration(milliseconds: 800),
-                      child: Icon(
-                        Icons.refresh_rounded,
+                      child: ImageIcon(
+                        const AssetImage('assets/icon/refresh.png'),
                         color: Colors.white,
                         size: AppSizes.blockHeight * 2.6, // Bigger icon
                       ),
@@ -111,8 +113,10 @@ class HomeScreen extends StatelessWidget {
                     splashRadius: 28,
                     tooltip: 'تحديث',
                   ),
+
                   // Profile avatar
                   ProfileAvatar(),
+
                   //SizedBox(width: AppPadding.medium),
                 ],
               ),
@@ -130,7 +134,7 @@ class HomeScreen extends StatelessWidget {
                     previous.status != current.status,
                 builder: (context, state) {
                   final isLoading = state.status == HomeStatus.loading;
-                  
+
                   return Skeletonizer(
                     enabled: isLoading,
                     child: SingleChildScrollView(
@@ -140,12 +144,11 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           // Connectivity status banner
                           const ConnectivityBanner(),
-                          
+
                           Padding(
                             padding: EdgeInsets.only(
-                              right: AppPadding.medium, 
-                              top: AppPadding.medium
-                            ),
+                                right: AppPadding.medium,
+                                top: AppPadding.medium),
                             child: Text(
                               'الإحصائيات العامة',
                               style: theme.textTheme.headlineMedium?.copyWith(
@@ -179,45 +182,105 @@ class HomeScreen extends StatelessWidget {
   Widget _buildNavigationButtons(BuildContext context, bool isLoading) {
     final theme = Theme.of(context);
     return Container(
-      padding: EdgeInsets.all(AppPadding.medium),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppPadding.medium,
+        vertical: AppPadding.small,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'الأقسام الرئيسية',
             style: theme.textTheme.headlineMedium?.copyWith(
-              fontSize: AppSizes.blockHeight * 2.2,
+              fontSize: AppSizes.blockHeight * 2.0,
               color: AppColors.primaryDark,
             ),
           ),
-          SizedBox(height: AppPadding.large),
-          
-          // Dashboard-style navigation grid
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: AppPadding.medium,
-            mainAxisSpacing: AppPadding.medium,
-            childAspectRatio: 1.1,
+          SizedBox(height: AppPadding.medium),
+
+          // Modern compact horizontal navigation buttons
+          Column(
             children: [
-              _buildDashboardStyleCard(
-                context,
-                title: 'الصيانة الدورية',
-                subtitle: 'إدارة تقارير الصيانة',
-                icon: Icons.engineering_rounded,
-                color: AppColors.secondary,
-                onTap: isLoading ? () {} : () => context.pushNamed('maintenance'),
-                isLoading: isLoading,
+              // First row
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildCompactNavButton(
+                      context,
+                      title: 'الصيانة الدورية',
+                      icon: Icons.engineering_rounded,
+                      color: AppColors.secondary,
+                      onTap: isLoading
+                          ? () {}
+                          : () => context.pushNamed('maintenance'),
+                      isLoading: isLoading,
+                    ),
+                  ),
+                  SizedBox(width: AppPadding.small),
+                  Expanded(
+                    child: _buildCompactNavButton(
+                      context,
+                      title: 'البلاغات',
+                      icon: Icons.report_problem_rounded,
+                      color: AppColors.primary,
+                      onTap: isLoading
+                          ? () {}
+                          : () => context.pushNamed('reports'),
+                      isLoading: isLoading,
+                    ),
+                  ),
+                ],
               ),
-              _buildDashboardStyleCard(
-                context,
-                title: 'البلاغات',
-                subtitle: 'متابعة وإدارة البلاغات',
-                icon: Icons.report_problem_rounded,
-                color: AppColors.primary,
-                onTap: isLoading ? () {} : () => context.pushNamed('reports'),
-                isLoading: isLoading,
+              SizedBox(height: AppPadding.small),
+              // Second row
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildCompactNavButton(
+                      context,
+                      title: 'حصورات الأعداد',
+                      icon: Icons.inventory_2_rounded,
+                      color: AppColors.secondaryLight,
+                      onTap: isLoading
+                          ? () {}
+                          : () => context.pushNamed('maintenance_schools'),
+                      isLoading: isLoading,
+                    ),
+                  ),
+                  SizedBox(width: AppPadding.small),
+                  Expanded(
+                    child: _buildCompactNavButton(
+                      context,
+                      title: 'حصر التوالف',
+                      icon: Icons.broken_image_rounded,
+                      color: Colors.orange,
+                      onTap: isLoading
+                          ? () {}
+                          : () => context.pushNamed('damage_schools'),
+                      isLoading: isLoading,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: AppPadding.small),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildCompactNavButton(
+                      context,
+                      title: 'مشاهد وتشيك ليست',
+                      icon: Icons.school_rounded,
+                      color: Colors.blue,
+                      onTap: isLoading
+                          ? () {}
+                          : () {
+                              HapticFeedback.lightImpact();
+                              context.pushNamed('schools_list');
+                            },
+                      isLoading: isLoading,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -226,115 +289,110 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboardStyleCard(
+  Widget _buildCompactNavButton(
     BuildContext context, {
     required String title,
-    required String subtitle,
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
     required bool isLoading,
   }) {
     final theme = Theme.of(context);
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Container(
+          height: AppSizes.blockHeight * 6.5,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
               colors: [
-                Colors.white,
-                color.withOpacity(0.02),
+                color.withValues(alpha: 0.12),
+                color.withValues(alpha: 0.06),
+                Colors.white.withValues(alpha: 0.9),
               ],
+              stops: const [0.0, 0.5, 1.0],
             ),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+                color: color.withValues(alpha: 0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
                 spreadRadius: 0,
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
                 spreadRadius: 0,
               ),
             ],
             border: Border.all(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.15),
               width: 1,
             ),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(
-                padding: EdgeInsets.all(AppPadding.large),
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppPadding.medium,
+                  vertical: AppPadding.small,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Colors.white.withOpacity(0.9),
-                      Colors.white.withOpacity(0.7),
+                      Colors.white.withValues(alpha: 0.95),
+                      Colors.white.withValues(alpha: 0.85),
                     ],
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(AppPadding.small),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            icon,
-                            color: color,
-                            size: AppSizes.blockWidth * 6,
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.all(AppPadding.small * 0.8),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            color: color,
-                            size: AppSizes.blockWidth * 3.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    Text(
-                      title,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                        fontSize: AppSizes.blockHeight * 1.6,
+                    Container(
+                      padding: EdgeInsets.all(AppPadding.small * 0.8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: color,
+                        size: AppSizes.blockWidth * 4.5,
                       ),
                     ),
-                    SizedBox(height: AppSizes.blockHeight * 0.3),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        fontSize: AppSizes.blockHeight * 1.2,
+                    SizedBox(width: AppPadding.small),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                          fontSize: AppSizes.blockHeight * 1.5,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(AppPadding.small * 0.5),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: color.withValues(alpha: 0.8),
+                        size: AppSizes.blockWidth * 3,
                       ),
                     ),
                   ],

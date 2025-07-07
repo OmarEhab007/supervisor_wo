@@ -34,6 +34,7 @@ dependencies:
   permission_handler: ^11.3.0
   device_info_plus: ^9.1.2
   url_launcher: ^6.2.5
+  package_info_plus: ^8.0.2
   
 # Routing
   go_router: ^15.1.2  
@@ -43,6 +44,8 @@ dependencies:
   skeletonizer: ^1.4.3
   fl_chart: ^0.66.2
   flutter_launcher_icons: ^0.14.3
+  uuid: ^4.5.1
+  upgrader: ^11.4.0
   
   
 dev_dependencies:
@@ -57,6 +60,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/icon/
 
 flutter_launcher_icons:
   android: "launcher_icon"

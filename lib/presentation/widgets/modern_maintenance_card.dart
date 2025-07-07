@@ -84,7 +84,7 @@ Widget buildModernMaintenanceCard(
                         color: const Color(0xff1E293B),
                         height: 1.3,
                       ),
-                      maxLines: 1,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 6),

@@ -1,5 +1,7 @@
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 /// Cache entry containing value and expiration time
 class CacheEntry<T> {
@@ -355,5 +357,156 @@ extension CacheServiceExtensions on CacheService {
     }
 
     _log('Invalidated ${keysToRemove.length} report cache entries');
+  }
+}
+
+/// SharedPreferences-based persistence service for draft counts
+/// This provides persistent storage that survives app restarts
+
+/// Service for persisting draft counts locally using SharedPreferences
+class DraftCountPersistenceService {
+  static const String _maintenanceDraftPrefix = 'maintenance_draft_';
+  static const String _damageDraftPrefix = 'damage_draft_';
+  static const String _inProgressSchoolsKey = 'in_progress_schools';
+
+  /// Save draft maintenance count data
+  static Future<void> saveDraftMaintenanceCount({
+    required String schoolId,
+    required String schoolName,
+    required Map<String, dynamic> draftData,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_maintenanceDraftPrefix$schoolId';
+
+    final dataToSave = {
+      'schoolId': schoolId,
+      'schoolName': schoolName,
+      'lastUpdated': DateTime.now().toIso8601String(),
+      'draftData': draftData,
+    };
+
+    await prefs.setString(key, jsonEncode(dataToSave));
+    await _addToInProgressSchools(schoolId, schoolName, 'maintenance');
+  }
+
+  /// Save draft damage count data
+  static Future<void> saveDraftDamageCount({
+    required String schoolId,
+    required String schoolName,
+    required Map<String, dynamic> draftData,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_damageDraftPrefix$schoolId';
+
+    final dataToSave = {
+      'schoolId': schoolId,
+      'schoolName': schoolName,
+      'lastUpdated': DateTime.now().toIso8601String(),
+      'draftData': draftData,
+    };
+
+    await prefs.setString(key, jsonEncode(dataToSave));
+    await _addToInProgressSchools(schoolId, schoolName, 'damage');
+  }
+
+  /// Get draft maintenance count data
+  static Future<Map<String, dynamic>?> getDraftMaintenanceCount(
+      String schoolId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_maintenanceDraftPrefix$schoolId';
+    final jsonString = prefs.getString(key);
+
+    if (jsonString != null) {
+      return jsonDecode(jsonString) as Map<String, dynamic>;
+    }
+    return null;
+  }
+
+  /// Get draft damage count data
+  static Future<Map<String, dynamic>?> getDraftDamageCount(
+      String schoolId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_damageDraftPrefix$schoolId';
+    final jsonString = prefs.getString(key);
+
+    if (jsonString != null) {
+      return jsonDecode(jsonString) as Map<String, dynamic>;
+    }
+    return null;
+  }
+
+  /// Get all in-progress schools (both maintenance and damage)
+  static Future<List<Map<String, dynamic>>> getInProgressSchools() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_inProgressSchoolsKey);
+
+    if (jsonString != null) {
+      final List<dynamic> list = jsonDecode(jsonString);
+      return list.cast<Map<String, dynamic>>();
+    }
+    return [];
+  }
+
+  /// Remove draft maintenance count
+  static Future<void> removeDraftMaintenanceCount(String schoolId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_maintenanceDraftPrefix$schoolId';
+    await prefs.remove(key);
+    await _removeFromInProgressSchools(schoolId, 'maintenance');
+  }
+
+  /// Remove draft damage count
+  static Future<void> removeDraftDamageCount(String schoolId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_damageDraftPrefix$schoolId';
+    await prefs.remove(key);
+    await _removeFromInProgressSchools(schoolId, 'damage');
+  }
+
+  /// Clear all draft counts
+  static Future<void> clearAllDrafts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+
+    for (final key in keys) {
+      if (key.startsWith(_maintenanceDraftPrefix) ||
+          key.startsWith(_damageDraftPrefix) ||
+          key == _inProgressSchoolsKey) {
+        await prefs.remove(key);
+      }
+    }
+  }
+
+  /// Add school to in-progress list
+  static Future<void> _addToInProgressSchools(
+      String schoolId, String schoolName, String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = await getInProgressSchools();
+
+    // Remove existing entry for this school and type
+    current.removeWhere(
+        (school) => school['schoolId'] == schoolId && school['type'] == type);
+
+    // Add new entry
+    current.add({
+      'schoolId': schoolId,
+      'schoolName': schoolName,
+      'type': type, // 'maintenance' or 'damage'
+      'lastUpdated': DateTime.now().toIso8601String(),
+    });
+
+    await prefs.setString(_inProgressSchoolsKey, jsonEncode(current));
+  }
+
+  /// Remove school from in-progress list
+  static Future<void> _removeFromInProgressSchools(
+      String schoolId, String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = await getInProgressSchools();
+
+    current.removeWhere(
+        (school) => school['schoolId'] == schoolId && school['type'] == type);
+
+    await prefs.setString(_inProgressSchoolsKey, jsonEncode(current));
   }
 }

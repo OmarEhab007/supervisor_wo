@@ -195,7 +195,7 @@ class _ModernProfileScreenBody extends StatelessWidget {
               onPressed: () {
                 context.read<SupervisorBloc>().add(const SupervisorRefreshed());
               },
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const ImageIcon(AssetImage('assets/icon/refresh.png')),
               label: const Text('إعادة المحاولة'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -233,7 +233,7 @@ class _ModernProfileScreenBody extends StatelessWidget {
             children: [
               _buildModernInfoItem(
                 context: context,
-                icon: Icons.account_circle_rounded,
+                icon: Icons.person_rounded,
                 title: 'اسم المستخدم',
                 value: profile.username,
                 iconColor: AppColors.primary,

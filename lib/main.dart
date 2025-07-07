@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'firebase_options.dart';
 import 'package:supervisor_wo/core/blocs/auth/auth.dart';
 import 'package:supervisor_wo/core/blocs/home/home_bloc.dart';
@@ -18,6 +19,10 @@ import 'package:supervisor_wo/core/blocs/supervisor/supervisor_event.dart';
 import 'package:supervisor_wo/core/repositories/report_repository.dart';
 import 'package:supervisor_wo/core/repositories/school_repository.dart';
 import 'package:supervisor_wo/core/repositories/auth_repository.dart';
+import 'package:supervisor_wo/core/repositories/maintenance_count_repository.dart';
+import 'package:supervisor_wo/core/blocs/maintenance_count/maintenance_count.dart';
+import 'package:supervisor_wo/core/repositories/damage_count_repository.dart';
+import 'package:supervisor_wo/core/blocs/damage_count/damage_count.dart';
 import 'package:supervisor_wo/core/services/app_initializer.dart';
 import 'package:supervisor_wo/core/services/theme.dart';
 import 'package:supervisor_wo/core/services/late_reports_checker.dart';
@@ -45,6 +50,11 @@ void main() async {
     // Ensure Flutter bindings are initialized
     WidgetsFlutterBinding.ensureInitialized();
 
+    // Initialize Arabic locale for date formatting
+    debugPrint('🌍 Initializing Arabic locale...');
+    await initializeDateFormatting('ar', null);
+    debugPrint('✅ Arabic locale initialized successfully');
+
     // Initialize Firebase FIRST
     debugPrint('🔥 Initializing Firebase...');
     await Firebase.initializeApp(
@@ -67,6 +77,8 @@ void main() async {
       reportRepository: repositories.reportRepository,
       schoolRepository: repositories.schoolRepository,
       authRepository: repositories.authRepository,
+      maintenanceCountRepository: repositories.maintenanceCountRepository,
+      damageCountRepository: repositories.damageCountRepository,
     ));
   } catch (error, stackTrace) {
     // Handle initialization errors gracefully
@@ -126,12 +138,16 @@ class SupervisorApp extends StatefulWidget {
   final ReportRepository reportRepository;
   final SchoolRepository schoolRepository;
   final AuthRepository authRepository;
+  final MaintenanceCountRepository maintenanceCountRepository;
+  final DamageCountRepository damageCountRepository;
 
   const SupervisorApp({
     super.key,
     required this.reportRepository,
     required this.schoolRepository,
     required this.authRepository,
+    required this.maintenanceCountRepository,
+    required this.damageCountRepository,
   });
 
   @override
@@ -157,12 +173,16 @@ class _SupervisorAppState extends State<SupervisorApp> {
             create: (_) => widget.schoolRepository),
         RepositoryProvider<AuthRepository>(
             create: (_) => widget.authRepository),
+        RepositoryProvider<MaintenanceCountRepository>(
+            create: (_) => widget.maintenanceCountRepository),
+        RepositoryProvider<DamageCountRepository>(
+            create: (_) => widget.damageCountRepository),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<ConnectivityBloc>(
-            create: (context) => ConnectivityBloc()
-              ..add(const ConnectivityStarted()),
+            create: (context) =>
+                ConnectivityBloc()..add(const ConnectivityStarted()),
           ),
           BlocProvider<AuthBloc>(
             create: (context) => AuthBloc(
@@ -208,6 +228,16 @@ class _SupervisorAppState extends State<SupervisorApp> {
             create: (context) => SchoolsBloc(
               schoolRepository: widget.schoolRepository,
             )..add(const SchoolsStarted()),
+          ),
+          BlocProvider<MaintenanceCountBloc>(
+            create: (context) => MaintenanceCountBloc(
+              repository: widget.maintenanceCountRepository,
+            )..add(const MaintenanceCountSchoolsStarted()),
+          ),
+          BlocProvider<DamageCountBloc>(
+            create: (context) => DamageCountBloc(
+              repository: widget.damageCountRepository,
+            )..add(const DamageCountSchoolsStarted()),
           ),
         ],
         child: MaterialApp.router(

@@ -14,12 +14,14 @@ class ImagePickerWidget extends StatelessWidget {
     super.key,
     required this.images,
     required this.onImagesChanged,
-    this.maxImages = 10,
+    this.maxImages = 999,
   });
 
   @override
   Widget build(BuildContext context) {
     AppSizes.init(context);
+    final bool isUnlimited = maxImages >= 999;
+
     return Container(
       padding: EdgeInsets.all(AppPadding.medium),
       decoration: BoxDecoration(
@@ -71,7 +73,9 @@ class ImagePickerWidget extends StatelessWidget {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      '${images.length} من $maxImages صور',
+                      isUnlimited
+                          ? '${images.length} صورة'
+                          : '${images.length} من $maxImages صور',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -81,27 +85,27 @@ class ImagePickerWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              // Progress indicator
-              Container(
-                width: 60,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: const Color(0xffF1F5F9),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: images.length / maxImages,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: images.length == maxImages 
-                          ? const Color(0xff10B981) 
-                          : const Color(0xff3B82F6),
-                      borderRadius: BorderRadius.circular(4),
+              if (!isUnlimited)
+                Container(
+                  width: 60,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: const Color(0xffF1F5F9),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: images.length / maxImages,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: images.length == maxImages
+                            ? const Color(0xff10B981)
+                            : const Color(0xff3B82F6),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
 
@@ -110,12 +114,12 @@ class ImagePickerWidget extends StatelessWidget {
             _buildImageGrid(context),
           ],
 
-          if (images.length < maxImages) ...[
+          if (isUnlimited || images.length < maxImages) ...[
             SizedBox(height: AppPadding.medium),
             _buildAddImageSection(context),
           ],
 
-          if (images.length == maxImages) ...[
+          if (!isUnlimited && images.length == maxImages) ...[
             SizedBox(height: AppPadding.medium),
             _buildCompletionIndicator(),
           ],
@@ -160,7 +164,7 @@ class ImagePickerWidget extends StatelessWidget {
               child: _buildImageWidget(context, imagePath),
             ),
           ),
-          
+
           // Delete button
           Positioned(
             top: 6,
@@ -219,73 +223,72 @@ class ImagePickerWidget extends StatelessWidget {
     return Column(
       children: [
         // Quick add button
-        if(images.isNotEmpty)...[
-           GestureDetector(
-          onTap: () => _pickImage(context),
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(AppPadding.medium),
-            decoration: BoxDecoration(
-              color: const Color(0xff3B82F6).withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xff3B82F6).withOpacity(0.2),
-                width: 1.5,
-                style: BorderStyle.solid,
+        if (images.isNotEmpty) ...[
+          GestureDetector(
+            onTap: () => _pickImage(context),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(AppPadding.medium),
+              decoration: BoxDecoration(
+                color: const Color(0xff3B82F6).withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xff3B82F6).withOpacity(0.2),
+                  width: 1.5,
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xff3B82F6).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.add_photo_alternate_outlined,
+                      color: const Color(0xff3B82F6),
+                      size: 20,
+                    ),
+                  ),
+                  SizedBox(width: AppPadding.medium),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'إضافة صورة جديدة',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xff3B82F6),
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'اضغط لاختيار صورة من الكاميرا أو المعرض',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xff64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: const Color(0xff3B82F6),
+                    size: 16,
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xff3B82F6).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.add_photo_alternate_outlined,
-                    color: const Color(0xff3B82F6),
-                    size: 20,
-                  ),
-                ),
-                SizedBox(width: AppPadding.medium),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'إضافة صورة جديدة',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xff3B82F6),
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'اضغط لاختيار صورة من الكاميرا أو المعرض',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: const Color(0xff64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: const Color(0xff3B82F6),
-                  size: 16,
-                ),
-              ],
-            ),
           ),
-        ),
         ],
-       
-        
+
         if (images.isEmpty) ...[
           SizedBox(height: AppPadding.small),
           // Alternative options when no images
@@ -487,10 +490,12 @@ class ImagePickerWidget extends StatelessWidget {
     }
   }
 
-  Future<void> _pickImageFromSource(BuildContext context, ImageSource source) async {
+  Future<void> _pickImageFromSource(
+      BuildContext context, ImageSource source) async {
     try {
-      // Check if already at max capacity
-      if (images.length >= maxImages) {
+      final bool isUnlimited = maxImages >= 999;
+
+      if (!isUnlimited && images.length >= maxImages) {
         _showSnackBar(
           context,
           'لقد وصلت للحد الأقصى من الصور ($maxImages صور)',
@@ -502,9 +507,11 @@ class ImagePickerWidget extends StatelessWidget {
 
       bool permissionGranted = false;
       if (source == ImageSource.camera) {
-        permissionGranted = await PermissionUtils.requestCameraPermission(context);
+        permissionGranted =
+            await PermissionUtils.requestCameraPermission(context);
       } else {
-        permissionGranted = await PermissionUtils.requestStoragePermission(context);
+        permissionGranted =
+            await PermissionUtils.requestStoragePermission(context);
       }
 
       if (!permissionGranted) {
@@ -530,12 +537,10 @@ class ImagePickerWidget extends StatelessWidget {
 
       if (pickedFiles.isNotEmpty) {
         final newImages = List<String>.from(images);
-        final remainingSlots = maxImages - newImages.length;
         int actuallyAdded = 0;
 
-        // Add images up to the limit
         for (var file in pickedFiles) {
-          if (newImages.length < maxImages) {
+          if (isUnlimited || newImages.length < maxImages) {
             newImages.add(file.path);
             actuallyAdded++;
           }
@@ -543,20 +548,18 @@ class ImagePickerWidget extends StatelessWidget {
 
         onImagesChanged(newImages);
 
-        // Show appropriate feedback based on what happened
-        if (pickedFiles.length > remainingSlots) {
-          // User tried to add more than available slots
+        if (!isUnlimited && pickedFiles.length > (maxImages - images.length)) {
+          final ignored = pickedFiles.length - actuallyAdded;
           _showSnackBar(
             context,
-            'تم إضافة $actuallyAdded صورة. تم تجاهل ${pickedFiles.length - actuallyAdded} صورة (الحد الأقصى $maxImages صور)',
+            'تم إضافة $actuallyAdded صورة. تم تجاهل $ignored صورة (الحد الأقصى $maxImages صور)',
             const Color(0xffF59E0B),
             Icons.info,
           );
         } else {
-          // All selected images were added successfully
           _showSnackBar(
             context,
-            actuallyAdded == 1 
+            actuallyAdded == 1
                 ? 'تم إضافة صورة واحدة بنجاح'
                 : 'تم إضافة $actuallyAdded صورة بنجاح',
             const Color(0xff10B981),
@@ -579,7 +582,8 @@ class ImagePickerWidget extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Container(
             padding: EdgeInsets.all(24),
             child: Column(
@@ -677,7 +681,8 @@ class ImagePickerWidget extends StatelessWidget {
     );
   }
 
-  void _showSnackBar(BuildContext context, String message, Color color, IconData icon) {
+  void _showSnackBar(
+      BuildContext context, String message, Color color, IconData icon) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(

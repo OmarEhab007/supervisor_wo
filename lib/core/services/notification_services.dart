@@ -310,7 +310,8 @@ class NotificationService {
       _log('✅ Report is for current user - sending FCM push notification');
 
       // 🚫 DISABLED: Don't send FCM from Flutter app - dashboard handles this
-      _log('⚠️ FCM sending disabled in Flutter app - dashboard handles notifications');
+      _log(
+          '⚠️ FCM sending disabled in Flutter app - dashboard handles notifications');
       // _sendFCMPushNotification(newRecord, 'new_report');
 
       _log('✅ FCM push notification sent for new report');
@@ -399,7 +400,8 @@ class NotificationService {
           '✅ Maintenance report is for current user - sending FCM push notification');
 
       // 🚫 DISABLED: Don't send FCM from Flutter app - dashboard handles this
-      _log('⚠️ FCM sending disabled in Flutter app - dashboard handles notifications');
+      _log(
+          '⚠️ FCM sending disabled in Flutter app - dashboard handles notifications');
       // _sendFCMPushNotification(newRecord, 'maintenance');
 
       _log('✅ FCM push notification sent for maintenance report');
@@ -480,10 +482,10 @@ class NotificationService {
       String body;
 
       if (reportType == 'maintenance') {
-        title = '🔧 بلاغ صيانة جديد';
+        title = 'صيانة دورية 🔧';
         body = 'لديك طلب صيانة جديد في مدرسة $schoolName';
       } else {
-        title = isEmergency ? '🚨 بلاغ عاجل' : '📋 بلاغ جديد';
+        title = isEmergency ? 'بلاغ عاجل 🚨' : 'بلاغ جديد 📋';
         body = 'لديك بلاغ جديد في مدرسة $schoolName .. الأولوية $priority';
       }
 

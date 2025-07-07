@@ -8,6 +8,8 @@ import 'package:supervisor_wo/core/blocs/app_bloc_observer.dart';
 import 'package:supervisor_wo/core/repositories/auth_repository.dart';
 import 'package:supervisor_wo/core/repositories/report_repository.dart';
 import 'package:supervisor_wo/core/repositories/school_repository.dart';
+import 'package:supervisor_wo/core/repositories/maintenance_count_repository.dart';
+import 'package:supervisor_wo/core/repositories/damage_count_repository.dart';
 import 'package:supervisor_wo/core/services/fcm_service.dart';
 import 'package:supervisor_wo/core/services/connectivity_service.dart';
 import 'package:supervisor_wo/core/services/supabase_client_wrapper.dart';
@@ -20,11 +22,15 @@ class AppRepositories {
   final ReportRepository reportRepository;
   final SchoolRepository schoolRepository;
   final AuthRepository authRepository;
+  final MaintenanceCountRepository maintenanceCountRepository;
+  final DamageCountRepository damageCountRepository;
 
   const AppRepositories({
     required this.reportRepository,
     required this.schoolRepository,
     required this.authRepository,
+    required this.maintenanceCountRepository,
+    required this.damageCountRepository,
   });
 }
 
@@ -64,10 +70,10 @@ class AppInitializer {
       // Initialize core services asynchronously to avoid blocking startup
       // OPTION 1: Current approach (recommended) - processes notifications in background
       // _initializeBackgroundServices();
-      
+
       // OPTION 2: Services only - real-time notifications only, no old queue processing
       _initializeServicesOnly();
-      
+
       // OPTION 3: Uncomment for cleanup-only mode (marks all as processed without trying to send)
       // _initializeWithCleanupOnly();
 
@@ -97,9 +103,11 @@ class AppInitializer {
     try {
       debugPrint('[AppInitializer] Initializing connectivity service...');
       await ConnectivityService.instance.initialize();
-      debugPrint('[AppInitializer] ✅ Connectivity service initialized successfully');
+      debugPrint(
+          '[AppInitializer] ✅ Connectivity service initialized successfully');
     } catch (error, stackTrace) {
-      debugPrint('[AppInitializer] ❌ Connectivity service initialization failed: $error');
+      debugPrint(
+          '[AppInitializer] ❌ Connectivity service initialization failed: $error');
       debugPrint('Stack trace: $stackTrace');
       // Don't throw - app can work without connectivity monitoring
     }
@@ -159,6 +167,8 @@ class AppInitializer {
       final reportRepository = ReportRepository();
       final schoolRepository = SchoolRepository();
       final authRepository = AuthRepository();
+      final maintenanceCountRepository = MaintenanceCountRepository();
+      final damageCountRepository = DamageCountRepository();
 
       debugPrint('[AppInitializer] Repositories initialized successfully');
 
@@ -166,6 +176,8 @@ class AppInitializer {
         reportRepository: reportRepository,
         schoolRepository: schoolRepository,
         authRepository: authRepository,
+        maintenanceCountRepository: maintenanceCountRepository,
+        damageCountRepository: damageCountRepository,
       );
     } catch (error, stackTrace) {
       throw GenericException(
@@ -268,11 +280,11 @@ class AppInitializer {
     Timer(const Duration(seconds: 1), () async {
       await _initializeNotificationService();
     });
-    
+
     Timer(const Duration(seconds: 2), () async {
       await _initializeFCMService();
     });
-    
+
     // Process pending notifications after services are initialized
     Timer(const Duration(seconds: 4), () async {
       await _processPendingNotifications();
@@ -284,12 +296,13 @@ class AppInitializer {
     Timer(const Duration(seconds: 1), () async {
       await _initializeNotificationService();
     });
-    
+
     Timer(const Duration(seconds: 2), () async {
       await _initializeFCMService();
     });
-    
-    debugPrint('[AppInitializer] 🚫 Notification processing disabled - no queue processing');
+
+    debugPrint(
+        '[AppInitializer] 🚫 Notification processing disabled - no queue processing');
   }
 
   /// OPTION 3: Initialize services and cleanup old notifications without sending
@@ -297,11 +310,11 @@ class AppInitializer {
     Timer(const Duration(seconds: 1), () async {
       await _initializeNotificationService();
     });
-    
+
     Timer(const Duration(seconds: 2), () async {
       await _initializeFCMService();
     });
-    
+
     // Just mark old notifications as processed without trying to send them
     Timer(const Duration(seconds: 4), () async {
       await _cleanupOldNotifications();
@@ -325,7 +338,8 @@ class AppInitializer {
 
       // Check if user is authenticated first
       if (client.auth.currentUser == null) {
-        debugPrint('[AppInitializer] No authenticated user - skipping notification processing');
+        debugPrint(
+            '[AppInitializer] No authenticated user - skipping notification processing');
         return;
       }
 
@@ -359,7 +373,8 @@ class AppInitializer {
               'body': notification['body'],
               'data': notification['data'],
               'priority': notification['data']?['priority'] ?? 'normal',
-              'school_name': notification['data']?['school_name'] ?? 'Unknown School',
+              'school_name':
+                  notification['data']?['school_name'] ?? 'Unknown School',
             },
             headers: {
               'Authorization':
@@ -390,7 +405,7 @@ class AppInitializer {
         } catch (error) {
           debugPrint(
               '[AppInitializer] Error processing notification ${notification['id']}: $error');
-          
+
           // If it's a FCM token error, mark as processed to avoid infinite retries
           if (error.toString().contains('No FCM tokens found')) {
             try {
@@ -399,14 +414,15 @@ class AppInitializer {
                   .update({'processed': true})
                   .eq('id', notification['id'])
                   .timeout(const Duration(seconds: 5));
-              
+
               debugPrint(
                   '[AppInitializer] ⚠️ Marked notification ${notification['id']} as processed (FCM token error)');
             } catch (markError) {
-              debugPrint('[AppInitializer] Failed to mark notification as processed: $markError');
+              debugPrint(
+                  '[AppInitializer] Failed to mark notification as processed: $markError');
             }
           }
-          
+
           // Continue processing other notifications
           continue;
         }

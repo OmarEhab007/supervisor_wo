@@ -25,7 +25,7 @@ class CompletedReportsScreen extends StatefulWidget {
 class _CompletedReportsScreenState extends State<CompletedReportsScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  
+
   // Pagination variables
   static const int _reportsPerPage = 20;
   int _completedCurrentPage = 1;
@@ -35,7 +35,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     // Add listener to update UI when tab changes
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
@@ -48,9 +48,11 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
         }
       }
     });
-    
+
     // Load completed reports by default
-    context.read<ReportsBloc>().add(const ReportsFilterChanged(ReportFilter.completed));
+    context
+        .read<ReportsBloc>()
+        .add(const ReportsFilterChanged(ReportFilter.completed));
   }
 
   @override
@@ -61,7 +63,9 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
 
   /// Get current page number based on active filter
   int get _currentPage {
-    return _tabController.index == 0 ? _completedCurrentPage : _lateCompletedCurrentPage;
+    return _tabController.index == 0
+        ? _completedCurrentPage
+        : _lateCompletedCurrentPage;
   }
 
   /// Set current page number based on active filter
@@ -85,7 +89,6 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
 
   @override
   Widget build(BuildContext context) {
-    
     AppSizes.init(context);
 
     return BlocListener<ReportsBloc, ReportsState>(
@@ -107,14 +110,16 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
             title: 'البلاغات المنجزة',
             subtitle: 'إدارة البلاغات',
             showRefreshButton: true,
-            onRefresh: () => context.read<ReportsBloc>().add(const ReportsRefreshed()),
+            onRefresh: () =>
+                context.read<ReportsBloc>().add(const ReportsRefreshed()),
             isLoading: context.select<ReportsBloc, bool>(
               (bloc) => bloc.state.status == ReportsStatus.loading,
             ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(72.0),
               child: Container(
-                margin: EdgeInsets.fromLTRB(AppPadding.large, 0, AppPadding.large, AppPadding.medium),
+                margin: EdgeInsets.fromLTRB(
+                    AppPadding.large, 0, AppPadding.large, AppPadding.medium),
                 child: _buildModernTabSelector(),
               ),
             ),
@@ -194,9 +199,10 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
   }
 
   /// Builds individual tab option with modern styling and micro-interactions
-  Widget _buildTabOption(int index, String title, IconData icon, Color accentColor) {
+  Widget _buildTabOption(
+      int index, String title, IconData icon, Color accentColor) {
     final isSelected = _tabController.index == index;
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -205,7 +211,9 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
             // Add haptic feedback for better UX
             HapticFeedback.lightImpact();
             _tabController.animateTo(index);
-            final filter = index == 0 ? ReportFilter.completed : ReportFilter.lateCompleted;
+            final filter = index == 0
+                ? ReportFilter.completed
+                : ReportFilter.lateCompleted;
             context.read<ReportsBloc>().add(ReportsFilterChanged(filter));
           }
         },
@@ -215,22 +223,22 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
           curve: Curves.easeInOutCubic,
           height: 48,
           decoration: BoxDecoration(
-            color: isSelected 
-                ? Colors.white 
-                : Colors.transparent,
+            color: isSelected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: accentColor.withOpacity(0.12),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ] : null,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: accentColor.withOpacity(0.12),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -241,7 +249,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                 curve: Curves.easeInOutCubic,
                 padding: EdgeInsets.all(isSelected ? 8 : 6),
                 decoration: BoxDecoration(
-                  color: isSelected 
+                  color: isSelected
                       ? accentColor.withOpacity(0.12)
                       : Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(isSelected ? 10 : 8),
@@ -252,7 +260,9 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                   child: Icon(
                     icon,
                     size: AppSizes.blockHeight * (isSelected ? 2.0 : 1.8),
-                    color: isSelected ? accentColor : Colors.white.withOpacity(0.9),
+                    color: isSelected
+                        ? accentColor
+                        : Colors.white.withOpacity(0.9),
                   ),
                 ),
               ),
@@ -265,13 +275,15 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                   style: TextStyle(
                     fontSize: AppSizes.blockHeight * (isSelected ? 1.6 : 1.4),
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? AppColors.primaryDark : Colors.white.withOpacity(0.9),
+                    color: isSelected
+                        ? AppColors.primaryDark
+                        : Colors.white.withOpacity(0.9),
                     letterSpacing: isSelected ? 0.5 : 0.0,
                   ),
                   child: Text(
                     title,
                     textAlign: TextAlign.center,
-                    maxLines: 1,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -291,7 +303,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
           previous.activeFilter != current.activeFilter,
       builder: (context, state) {
         final isLoading = state.status == ReportsStatus.loading;
-        
+
         // Get reports based on the filter
         List<Report> allReports;
         if (state.activeFilter == filter) {
@@ -299,7 +311,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
         } else {
           // Filter manually if not current filter
           allReports = state.reports
-              .where((report) => filter == ReportFilter.completed 
+              .where((report) => filter == ReportFilter.completed
                   ? report.status == 'completed'
                   : report.status == 'late_completed')
               .toList();
@@ -308,12 +320,14 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
         // Calculate pagination
         final totalReports = allReports.length;
         final totalPages = (totalReports / _reportsPerPage).ceil();
-        final currentPage = filter == ReportFilter.completed ? _completedCurrentPage : _lateCompletedCurrentPage;
-        
+        final currentPage = filter == ReportFilter.completed
+            ? _completedCurrentPage
+            : _lateCompletedCurrentPage;
+
         // Get reports for current page
         final startIndex = (currentPage - 1) * _reportsPerPage;
         final endIndex = (startIndex + _reportsPerPage).clamp(0, totalReports);
-        final paginatedReports = totalReports > 0 
+        final paginatedReports = totalReports > 0
             ? allReports.sublist(startIndex, endIndex)
             : <Report>[];
 
@@ -327,7 +341,8 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
               children: [
                 _buildStatsSection(context, allReports, filter),
                 SizedBox(height: AppPadding.large),
-                _buildReportsContainer(context, paginatedReports, filter, isLoading, totalReports),
+                _buildReportsContainer(
+                    context, paginatedReports, filter, isLoading, totalReports),
                 if (totalPages > 1 && !isLoading) ...[
                   SizedBox(height: AppPadding.large),
                   _buildPaginationControls(currentPage, totalPages, filter),
@@ -340,13 +355,15 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
     );
   }
 
-  Widget _buildStatsSection(BuildContext context, List<Report> reports, ReportFilter filter) {
+  Widget _buildStatsSection(
+      BuildContext context, List<Report> reports, ReportFilter filter) {
     final theme = Theme.of(context);
     final isLateCompleted = filter == ReportFilter.lateCompleted;
     final totalReports = reports.length;
-    final emergencyReports = reports.where((r) => r.priority == 'Emergency').length;
+    final emergencyReports =
+        reports.where((r) => r.priority == 'Emergency').length;
     final schoolsCount = reports.map((r) => r.schoolName).toSet().length;
-    
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(AppPadding.large),
@@ -373,14 +390,15 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
               Container(
                 padding: EdgeInsets.all(AppPadding.small),
                 decoration: BoxDecoration(
-                  color: isLateCompleted 
+                  color: isLateCompleted
                       ? AppColors.warning.withOpacity(0.1)
                       : AppColors.success.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   isLateCompleted ? Icons.schedule : Icons.check_circle,
-                  color: isLateCompleted ? AppColors.warning : AppColors.success,
+                  color:
+                      isLateCompleted ? AppColors.warning : AppColors.success,
                   size: AppSizes.blockHeight * 2.0,
                 ),
               ),
@@ -390,7 +408,9 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isLateCompleted ? 'البلاغات المكتملة المتأخرة' : 'البلاغات المكتملة',
+                      isLateCompleted
+                          ? 'البلاغات المكتملة المتأخرة'
+                          : 'البلاغات المكتملة',
                       style: theme.textTheme.displayMedium?.copyWith(
                         fontSize: AppSizes.blockHeight * 2.4,
                         fontWeight: FontWeight.bold,
@@ -398,7 +418,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                       ),
                     ),
                     Text(
-                      isLateCompleted 
+                      isLateCompleted
                           ? 'البلاغات التي تم إكمالها بعد الموعد المحدد'
                           : 'البلاغات التي تم إكمالها في الوقت المحدد',
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -470,7 +490,8 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
     );
   }
 
-  Widget _buildReportsContainer(BuildContext context, List<Report> reports, ReportFilter filter, bool isLoading, int totalReports) {
+  Widget _buildReportsContainer(BuildContext context, List<Report> reports,
+      ReportFilter filter, bool isLoading, int totalReports) {
     final theme = Theme.of(context);
     final isLateCompleted = filter == ReportFilter.lateCompleted;
 
@@ -508,7 +529,8 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
             Container(
               padding: EdgeInsets.all(AppPadding.large),
               decoration: BoxDecoration(
-                color: (isLateCompleted ? AppColors.warning : AppColors.success).withOpacity(0.1),
+                color: (isLateCompleted ? AppColors.warning : AppColors.success)
+                    .withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -519,7 +541,9 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
             ),
             SizedBox(height: AppPadding.large),
             Text(
-              isLateCompleted ? 'لا توجد بلاغات مكتملة متأخرة' : 'لا توجد بلاغات مكتملة',
+              isLateCompleted
+                  ? 'لا توجد بلاغات مكتملة متأخرة'
+                  : 'لا توجد بلاغات مكتملة',
               style: theme.textTheme.headlineMedium?.copyWith(
                 color: AppColors.primaryDark,
                 fontWeight: FontWeight.bold,
@@ -529,7 +553,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
             ),
             SizedBox(height: AppPadding.small),
             Text(
-              isLateCompleted 
+              isLateCompleted
                   ? 'لم يتم إكمال أي بلاغات بعد الموعد المحدد'
                   : 'لم يتم إكمال أي بلاغات حتى الآن',
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -571,15 +595,18 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      (isLateCompleted ? AppColors.warning : AppColors.success).withOpacity(0.1),
-                      (isLateCompleted ? AppColors.warning : AppColors.success).withOpacity(0.2),
+                      (isLateCompleted ? AppColors.warning : AppColors.success)
+                          .withOpacity(0.1),
+                      (isLateCompleted ? AppColors.warning : AppColors.success)
+                          .withOpacity(0.2),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   isLateCompleted ? Icons.schedule : Icons.check_circle_rounded,
-                  color: isLateCompleted ? AppColors.warning : AppColors.success,
+                  color:
+                      isLateCompleted ? AppColors.warning : AppColors.success,
                   size: AppSizes.blockHeight * 2.4,
                 ),
               ),
@@ -589,7 +616,9 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isLateCompleted ? 'البلاغات المكتملة المتأخرة' : 'البلاغات المكتملة',
+                      isLateCompleted
+                          ? 'البلاغات المكتملة المتأخرة'
+                          : 'البلاغات المكتملة',
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontSize: AppSizes.blockHeight * 2.4,
                         fontWeight: FontWeight.bold,
@@ -614,7 +643,8 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: filteredReports.length,
-            separatorBuilder: (context, index) => SizedBox(height: AppPadding.medium),
+            separatorBuilder: (context, index) =>
+                SizedBox(height: AppPadding.medium),
             itemBuilder: (context, index) {
               final report = filteredReports[index];
               return ReportCard(report: report);
@@ -666,7 +696,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
             fontWeight: FontWeight.w500,
           ),
           textAlign: TextAlign.center,
-          maxLines: 1,
+          maxLines: 3,
           overflow: TextOverflow.ellipsis,
         ),
       ],
@@ -674,7 +704,8 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
   }
 
   /// Build pagination controls
-  Widget _buildPaginationControls(int currentPage, int totalPages, ReportFilter filter) {
+  Widget _buildPaginationControls(
+      int currentPage, int totalPages, ReportFilter filter) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(AppPadding.large),
@@ -714,7 +745,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                 icon: Icons.arrow_back_ios_rounded,
                 label: 'السابق',
                 isEnabled: currentPage > 1,
-                onTap: currentPage > 1 
+                onTap: currentPage > 1
                     ? () {
                         HapticFeedback.lightImpact();
                         if (filter == ReportFilter.completed) {
@@ -734,7 +765,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                 icon: Icons.arrow_forward_ios_rounded,
                 label: 'التالي',
                 isEnabled: currentPage < totalPages,
-                onTap: currentPage < totalPages 
+                onTap: currentPage < totalPages
                     ? () {
                         HapticFeedback.lightImpact();
                         if (filter == ReportFilter.completed) {
@@ -770,12 +801,12 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
             vertical: AppPadding.small,
           ),
           decoration: BoxDecoration(
-            color: isEnabled 
+            color: isEnabled
                 ? AppColors.primary.withOpacity(0.1)
                 : AppColors.primaryDark.withOpacity(0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isEnabled 
+              color: isEnabled
                   ? AppColors.primary.withOpacity(0.3)
                   : AppColors.primaryDark.withOpacity(0.1),
               width: 1,
@@ -787,7 +818,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
               Icon(
                 icon,
                 size: 16,
-                color: isEnabled 
+                color: isEnabled
                     ? AppColors.primary
                     : AppColors.primaryDark.withOpacity(0.4),
               ),
@@ -797,7 +828,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isEnabled 
+                  color: isEnabled
                       ? AppColors.primary
                       : AppColors.primaryDark.withOpacity(0.4),
                 ),
@@ -810,13 +841,14 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
   }
 
   /// Build page number buttons
-  List<Widget> _buildPageNumbers(int currentPage, int totalPages, ReportFilter filter) {
+  List<Widget> _buildPageNumbers(
+      int currentPage, int totalPages, ReportFilter filter) {
     List<Widget> pageButtons = [];
-    
+
     // Calculate which pages to show (max 5 pages)
     int startPage = (currentPage - 2).clamp(1, totalPages);
     int endPage = (startPage + 4).clamp(1, totalPages);
-    
+
     // Adjust start page if we're near the end
     if (endPage == totalPages) {
       startPage = (totalPages - 4).clamp(1, totalPages);
@@ -840,12 +872,11 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: i == currentPage 
-                    ? AppColors.primary
-                    : Colors.transparent,
+                color:
+                    i == currentPage ? AppColors.primary : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: i == currentPage 
+                  color: i == currentPage
                       ? AppColors.primary
                       : AppColors.primaryDark.withOpacity(0.2),
                   width: 1,
@@ -857,9 +888,8 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: i == currentPage 
-                        ? Colors.white
-                        : AppColors.primaryDark,
+                    color:
+                        i == currentPage ? Colors.white : AppColors.primaryDark,
                   ),
                 ),
               ),
@@ -867,7 +897,7 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
           ),
         ),
       );
-      
+
       if (i < endPage) {
         pageButtons.add(SizedBox(width: 8));
       }
@@ -875,4 +905,4 @@ class _CompletedReportsScreenState extends State<CompletedReportsScreen>
 
     return pageButtons;
   }
-} 
+}

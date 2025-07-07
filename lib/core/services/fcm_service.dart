@@ -89,7 +89,7 @@ class FCMService {
     try {
       // Android initialization
       const androidInitialization =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
+          AndroidInitializationSettings('@mipmap/launcher_icon');
 
       // iOS initialization
       const iosInitialization = DarwinInitializationSettings(
@@ -213,42 +213,40 @@ class FCMService {
 
       if (existingTokens.isNotEmpty) {
         // Update existing token
-        await SupabaseClientWrapper.client
-            .from('user_fcm_tokens')
-            .update({
-              'fcm_token': token,
-              'platform': Platform.isIOS ? 'ios' : 'android',
-              'updated_at': DateTime.now().toIso8601String(),
-            })
-            .eq('user_id', userId);
+        await SupabaseClientWrapper.client.from('user_fcm_tokens').update({
+          'fcm_token': token,
+          'platform': Platform.isIOS ? 'ios' : 'android',
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('user_id', userId);
       } else {
         // Insert new token
-        await SupabaseClientWrapper.client
-            .from('user_fcm_tokens')
-            .insert({
-              'user_id': userId,
-              'fcm_token': token,
-              'platform': Platform.isIOS ? 'ios' : 'android',
-              'created_at': DateTime.now().toIso8601String(),
-              'updated_at': DateTime.now().toIso8601String(),
-            });
+        await SupabaseClientWrapper.client.from('user_fcm_tokens').insert({
+          'user_id': userId,
+          'fcm_token': token,
+          'platform': Platform.isIOS ? 'ios' : 'android',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        });
       }
 
       _log('✅ FCM token saved to Supabase for user: $userId');
       _log('📱 Platform: ${Platform.isIOS ? 'iOS' : 'Android'}');
-      
+
       // Optional: Clean up old tokens for this user (keep only the latest)
       await _cleanupOldTokens(userId, token);
-      
     } catch (error) {
       _log('❌ Error saving FCM token to Supabase: $error');
-      
+
       // Check if it's a table not found error
-      if (error.toString().contains('relation "user_fcm_tokens" does not exist')) {
-        _log('💡 Hint: You need to create the user_fcm_tokens table in Supabase');
-        _log('💡 SQL: CREATE TABLE user_fcm_tokens (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, user_id UUID REFERENCES auth.users(id), fcm_token TEXT NOT NULL, platform TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id));');
+      if (error
+          .toString()
+          .contains('relation "user_fcm_tokens" does not exist')) {
+        _log(
+            '💡 Hint: You need to create the user_fcm_tokens table in Supabase');
+        _log(
+            '💡 SQL: CREATE TABLE user_fcm_tokens (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, user_id UUID REFERENCES auth.users(id), fcm_token TEXT NOT NULL, platform TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id));');
       }
-      
+
       throw error; // Re-throw to trigger retry logic
     }
   }
@@ -262,7 +260,7 @@ class FCMService {
           .delete()
           .eq('user_id', userId)
           .neq('fcm_token', currentToken);
-      
+
       _log('🧹 Cleaned up old FCM tokens for user');
     } catch (error) {
       _log('⚠️ Could not clean up old tokens: $error');
@@ -300,7 +298,7 @@ class FCMService {
 
       // Determine notification type and icon
       final notificationType = message.data['type'] ?? 'default';
-      String iconPath = '@mipmap/ic_launcher';
+      String iconPath = '@mipmap/launcher_icon';
 
       if (notificationType == 'emergency') {
         iconPath = '@drawable/ic_emergency'; // You'll need to add this
@@ -312,7 +310,7 @@ class FCMService {
         channelDescription: _channelDescription,
         importance: Importance.high,
         priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
+        icon: '@mipmap/launcher_icon',
         sound: const RawResourceAndroidNotificationSound('notification_sound'),
         enableVibration: true,
         vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
@@ -444,10 +442,10 @@ class FCMService {
   Future<void> refreshToken() async {
     try {
       _log('🔄 Manually refreshing FCM token...');
-      
+
       // Delete the old token first
       await _firebaseMessaging.deleteToken();
-      
+
       // Get a new token
       final newToken = await _firebaseMessaging.getToken();
       if (newToken != null) {
@@ -469,7 +467,7 @@ class FCMService {
       _log('🔒 User logged out - FCM token will not be saved');
       return;
     }
-    
+
     if (_fcmToken != null) {
       _log('👤 User logged in - updating FCM token for user: $userId');
       await _saveFCMTokenToSupabase(_fcmToken!);

@@ -12,7 +12,6 @@ import 'package:supervisor_wo/core/utils/placeholder_utils.dart';
 import 'package:supervisor_wo/core/services/theme.dart';
 import 'package:supervisor_wo/models/report_model.dart';
 
-
 import '../widgets/modern_school_card.dart';
 import '../widgets/report_card.dart';
 import '../widgets/gradient_app_bar.dart';
@@ -26,7 +25,7 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppSizes.init(context);
-    
+
     // Apply the filter if provided, or reset to all if no filter
     if (filter != null) {
       // Set the filter in the BLoC
@@ -57,7 +56,8 @@ class ReportsScreen extends StatelessWidget {
             title: _getScreenTitle(),
             subtitle: 'إدارة البلاغات',
             showRefreshButton: true,
-            onRefresh: () => context.read<ReportsBloc>().add(const ReportsRefreshed()),
+            onRefresh: () =>
+                context.read<ReportsBloc>().add(const ReportsRefreshed()),
             isLoading: context.select<ReportsBloc, bool>(
               (bloc) => bloc.state.status == ReportsStatus.loading,
             ),
@@ -101,13 +101,15 @@ class ReportsScreen extends StatelessWidget {
   Widget _buildModernStatsSection(BuildContext context, ReportsState state) {
     final theme = Theme.of(context);
     AppSizes.init(context);
-    
+
     // Calculate statistics based on current filter
-    List<Report> reportsToShow = filter == null ? state.upcomingReports : state.filteredReports;
+    List<Report> reportsToShow =
+        filter == null ? state.upcomingReports : state.filteredReports;
     final totalReports = reportsToShow.length;
-    final emergencyReports = reportsToShow.where((r) => r.priority == 'Emergency').length;
+    final emergencyReports =
+        reportsToShow.where((r) => r.priority == 'Emergency').length;
     final schoolsCount = reportsToShow.map((r) => r.schoolName).toSet().length;
-    
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(AppPadding.large),
@@ -396,7 +398,8 @@ class ReportsScreen extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: filteredReports.length,
-              separatorBuilder: (context, index) => SizedBox(height: AppPadding.medium),
+              separatorBuilder: (context, index) =>
+                  SizedBox(height: AppPadding.medium),
               itemBuilder: (context, index) {
                 final report = filteredReports[index];
                 return ReportCard(report: report);
@@ -530,7 +533,8 @@ class ReportsScreen extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: sortedCategories.length,
-            separatorBuilder: (context, index) => SizedBox(height: AppPadding.large),
+            separatorBuilder: (context, index) =>
+                SizedBox(height: AppPadding.large),
             itemBuilder: (context, index) {
               final category = sortedCategories[index];
               final schoolsMap = groupedBySchool[category]!;
@@ -623,7 +627,8 @@ class ReportsScreen extends StatelessWidget {
                         Theme.of(context).colorScheme,
                         onTap: () {
                           // Navigate to school reports screen with both school name and current filter
-                          final currentState = context.read<ReportsBloc>().state;
+                          final currentState =
+                              context.read<ReportsBloc>().state;
                           final Map<String, dynamic> extraData = {
                             'schoolName': schoolName,
                             'filter': currentState.activeFilter,
@@ -685,7 +690,7 @@ class ReportsScreen extends StatelessWidget {
             fontWeight: FontWeight.w500,
           ),
           textAlign: TextAlign.center,
-          maxLines: 1,
+          maxLines: 3,
           overflow: TextOverflow.ellipsis,
         ),
       ],

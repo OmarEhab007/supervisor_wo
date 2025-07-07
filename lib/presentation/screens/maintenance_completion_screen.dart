@@ -31,7 +31,6 @@ class MaintenanceCompletionScreen extends StatefulWidget {
 class _MaintenanceCompletionScreenState
     extends State<MaintenanceCompletionScreen> {
   bool _submitted = false;
-  
 
   @override
   void initState() {
@@ -49,8 +48,10 @@ class _MaintenanceCompletionScreenState
     try {
       // Show loading dialog with upload progress
       int uploadProgress = 0;
-      int totalImages = state.completionPhotos.where((path) => !path.startsWith('http')).length;
-      
+      int totalImages = state.completionPhotos
+          .where((path) => !path.startsWith('http'))
+          .length;
+
       late StateSetter dialogSetState;
       if (totalImages > 0) {
         showDialog(
@@ -80,32 +81,40 @@ class _MaintenanceCompletionScreenState
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         CircularProgressIndicator(
-                          value: totalImages > 0 ? uploadProgress / totalImages : null,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
+                          value: totalImages > 0
+                              ? uploadProgress / totalImages
+                              : null,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.secondary),
                           strokeWidth: 3.5,
                         ),
                         SizedBox(height: AppPadding.large),
                         Text(
                           'جاري رفع الصور ($uploadProgress/$totalImages)',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: AppColors.primaryDark,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: AppColors.primaryDark,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
                         ),
                         SizedBox(height: AppPadding.medium),
                         LinearProgressIndicator(
-                          value: totalImages > 0 ? uploadProgress / totalImages : 0,
+                          value: totalImages > 0
+                              ? uploadProgress / totalImages
+                              : 0,
                           backgroundColor: Colors.grey[300],
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.secondary),
                         ),
                         SizedBox(height: AppPadding.small),
                         Text(
                           'يرجى الانتظار، سيتم إكمال الصيانة تلقائياً',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
                         ),
                       ],
                     ),
@@ -119,7 +128,7 @@ class _MaintenanceCompletionScreenState
 
       // Upload images in parallel first
       List<String> uploadedPhotos = [];
-      
+
       if (state.completionPhotos.isNotEmpty) {
         uploadedPhotos = await CloudinaryService.uploadImagesInParallel(
           state.completionPhotos,
@@ -140,18 +149,18 @@ class _MaintenanceCompletionScreenState
 
       // Dispatch maintenance completion event with uploaded URLs
       context.read<MaintenanceBloc>().add(
-        MaintenanceReportCompleted(
-          reportId: report.id,
-          completionNote: state.completionNote,
-          completionPhotos: uploadedPhotos,
-        ),
-      );
+            MaintenanceReportCompleted(
+              reportId: report.id,
+              completionNote: state.completionNote,
+              completionPhotos: uploadedPhotos,
+            ),
+          );
     } catch (e) {
       // Close any open dialogs
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
       }
-      
+
       setState(() => _submitted = false);
       AppToast.showError(context, 'فشل في رفع الصور: ${e.toString()}');
     }
@@ -186,7 +195,7 @@ class _MaintenanceCompletionScreenState
 class _MaintenanceCompletionView extends StatelessWidget {
   final MaintenanceReport report;
   final void Function(MaintenanceCompletionState, MaintenanceReport) onComplete;
- 
+
   const _MaintenanceCompletionView({
     required this.report,
     required this.onComplete,
@@ -195,7 +204,6 @@ class _MaintenanceCompletionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -210,7 +218,8 @@ class _MaintenanceCompletionView extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        body: BlocBuilder<MaintenanceCompletionCubit, MaintenanceCompletionState>(
+        body:
+            BlocBuilder<MaintenanceCompletionCubit, MaintenanceCompletionState>(
           builder: (context, state) {
             return Stack(
               children: [
@@ -227,7 +236,7 @@ class _MaintenanceCompletionView extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 SingleChildScrollView(
                   padding: EdgeInsets.all(AppPadding.medium),
                   child: Column(
@@ -235,22 +244,22 @@ class _MaintenanceCompletionView extends StatelessWidget {
                     children: [
                       // // Modern Maintenance Summary Card
                       // _buildMaintenanceSummaryCard(theme, formattedDate),
-                      
+
                       // SizedBox(height: AppPadding.medium),
-                      
+
                       // Completion Notes Section
                       _buildCompletionNotesCard(context, theme, state),
-                      
+
                       SizedBox(height: AppPadding.medium),
-                      
+
                       // Images Section
                       _buildImagesCard(context, theme, state),
-                      
+
                       SizedBox(height: AppPadding.large),
-                      
+
                       // Complete Button
                       _buildCompleteButton(context, state),
-                      
+
                       SizedBox(height: AppPadding.large),
                     ],
                   ),
@@ -268,11 +277,10 @@ class _MaintenanceCompletionView extends StatelessWidget {
     );
   }
 
-
-
-  Widget _buildCompletionNotesCard(BuildContext context, ThemeData theme, MaintenanceCompletionState state) {
+  Widget _buildCompletionNotesCard(
+      BuildContext context, ThemeData theme, MaintenanceCompletionState state) {
     final cubit = context.read<MaintenanceCompletionCubit>();
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -315,7 +323,10 @@ class _MaintenanceCompletionView extends StatelessWidget {
                   padding: EdgeInsets.all(AppPadding.small),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.secondary, AppColors.secondary.withOpacity(0.8)],
+                      colors: [
+                        AppColors.secondary,
+                        AppColors.secondary.withOpacity(0.8)
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
@@ -344,7 +355,7 @@ class _MaintenanceCompletionView extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Content
           Padding(
             padding: EdgeInsets.all(AppPadding.medium),
@@ -359,7 +370,8 @@ class _MaintenanceCompletionView extends StatelessWidget {
               ),
               child: TextFormField(
                 decoration: InputDecoration(
-                  hintText: 'اكتب ملاحظات مفصلة حول أعمال الصيانة المنجزة والمعدات المستخدمة...',
+                  hintText:
+                      'اكتب ملاحظات مفصلة حول أعمال الصيانة المنجزة والمعدات المستخدمة...',
                   hintStyle: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.primaryDark.withOpacity(0.5),
                     fontSize: 14,
@@ -383,9 +395,10 @@ class _MaintenanceCompletionView extends StatelessWidget {
     );
   }
 
-  Widget _buildImagesCard(BuildContext context, ThemeData theme, MaintenanceCompletionState state) {
+  Widget _buildImagesCard(
+      BuildContext context, ThemeData theme, MaintenanceCompletionState state) {
     final cubit = context.read<MaintenanceCompletionCubit>();
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -428,7 +441,10 @@ class _MaintenanceCompletionView extends StatelessWidget {
                   padding: EdgeInsets.all(AppPadding.small),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.success, AppColors.success.withOpacity(0.8)],
+                      colors: [
+                        AppColors.success,
+                        AppColors.success.withOpacity(0.8)
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
@@ -457,14 +473,14 @@ class _MaintenanceCompletionView extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Content
           Padding(
             padding: EdgeInsets.all(AppPadding.medium),
             child: ImagePickerWidget(
               images: state.completionPhotos,
               onImagesChanged: cubit.completionPhotosChanged,
-              maxImages: 10,
+              // maxImages removed to use unlimited default
             ),
           ),
         ],
@@ -472,23 +488,26 @@ class _MaintenanceCompletionView extends StatelessWidget {
     );
   }
 
-  Widget _buildCompleteButton(BuildContext context, MaintenanceCompletionState state) {
+  Widget _buildCompleteButton(
+      BuildContext context, MaintenanceCompletionState state) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: state.isValid 
+          colors: state.isValid
               ? [AppColors.secondary, AppColors.secondaryLight]
               : [Colors.grey.shade400, Colors.grey.shade500],
         ),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: state.isValid ? [
-          BoxShadow(
-            color: AppColors.secondary.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ] : [],
+        boxShadow: state.isValid
+            ? [
+                BoxShadow(
+                  color: AppColors.secondary.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ]
+            : [],
       ),
       child: Material(
         color: Colors.transparent,
@@ -500,7 +519,8 @@ class _MaintenanceCompletionView extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (context.watch<MaintenanceBloc>().state.status == MaintenanceStatus.loading)
+                if (context.watch<MaintenanceBloc>().state.status ==
+                    MaintenanceStatus.loading)
                   Container(
                     width: 24,
                     height: 24,
@@ -532,8 +552,6 @@ class _MaintenanceCompletionView extends StatelessWidget {
       ),
     );
   }
-
-
 }
 
 /// Cubit for managing the maintenance completion form state

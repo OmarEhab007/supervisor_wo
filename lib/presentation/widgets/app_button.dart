@@ -4,7 +4,7 @@ import 'package:supervisor_wo/utils/app_sizes.dart';
 /// A reusable button widget with consistent styling
 class AppButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isLoading;
   final bool isEnabled;
   final Color? color;
